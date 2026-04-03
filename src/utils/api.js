@@ -1,10 +1,11 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api', // This points to our Express server
+  // REPLACE 'http://localhost:5000/api' with your Render URL
+  baseURL: 'https://pos-cafe-svr-1.onrender.com/api', 
 });
 
-// This automatically attaches our JWT token to every request if it exists
+// The rest of the interceptor code stays exactly the same...
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
