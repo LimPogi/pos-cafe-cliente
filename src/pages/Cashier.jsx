@@ -28,21 +28,18 @@ export default function Cashier() {
   };
 
   const addToCart = (product) => {
-    setCart(currentCart => {
-      const existing = currentCart.find(item => item.id === product.id);
-      
-      // Stock Check (Optional: helps prevent overselling)
-      if (product.stock_quantity !== undefined && existing && existing.quantity >= product.stock_quantity) {
-        alert("Not enough stock available!");
-        return currentCart;
-      }
+  // Add this safety check at the very top of the function
+  if (!product || product.stock_quantity === null || product.stock_quantity === undefined) {
+    console.error("Product data is incomplete:", product);
+    return; 
+  }
 
-      if (existing) {
-        return currentCart.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [...currentCart, { ...product, quantity: 1 }];
+  setCart(currentCart => {
+    const existing = currentCart.find(item => item.id === product.id);
+    if (existing && existing.quantity >= product.stock_quantity) {
+      alert("Not enough stock available!");
+      return currentCart;
+    }
     });
   };
 

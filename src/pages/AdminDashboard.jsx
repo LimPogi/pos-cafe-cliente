@@ -13,13 +13,18 @@ export default function AdminDashboard() {
   const [showStaffModal, setShowStaffModal] = useState(false);
 
   // FORM STATES
-  const [newProduct, setNewProduct] = useState({ name: '', price: '', category: 'Coffee', stock_quantity: '' });
+  const newProduct = {
+  name: productName,
+  price: parseFloat(price), // Must be a number
+  category: category,
+  stock_quantity: parseInt(stock) // Must be an integer
+};
   const [staff, setStaff] = useState({ name: '', email: '', password: '' });
 
   useEffect(() => {
     fetchInitialData();
   }, []);
-
+  
   const fetchInitialData = async () => {
     setLoading(true);
     await Promise.all([fetchProducts(), fetchStats()]);
