@@ -12,7 +12,7 @@ export default function AdminDashboard() {
   const [showProductModal, setShowProductModal] = useState(false);
   const [showStaffModal, setShowStaffModal] = useState(false);
 
-  // FORM STATES (Fixed: Now using a proper React State)
+  // FORM STATES
   const [productForm, setProductForm] = useState({
     name: '',
     price: '',
@@ -28,7 +28,7 @@ export default function AdminDashboard() {
   
   const fetchInitialData = async () => {
     setLoading(true);
-    // Promise.all is great for performance!
+    // Fetch both products and stats simultaneously for better performance
     await Promise.all([fetchProducts(), fetchStats()]);
     setLoading(false);
   };
@@ -45,7 +45,6 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     try {
       const res = await api.get('/dashboard/stats');
-      // Added safety check to ensure stats never stays null
       setStats(res.data || { totalRevenue: 0, totalOrders: 0 });
     } catch (err) {
       console.error("Could not load stats", err);
@@ -55,23 +54,33 @@ export default function AdminDashboard() {
   // HANDLERS
   const handleAddProduct = async (e) => {
     e.preventDefault();
+    
+    // CRITICAL: Ensure numbers are actually numbers to avoid Database errors
+    const priceNum = parseFloat(productForm.price);
+    const stockNum = parseInt(productForm.stock_quantity, 10);
+
+    if (isNaN(priceNum) || isNaN(stockNum)) {
+      return alert("Price and Stock must be valid numbers!");
+    }
+
     try {
-      // We convert strings to numbers right before sending to Supabase
       const payload = {
-        ...productForm,
-        price: parseFloat(productForm.price),
-        stock_quantity: parseInt(productForm.stock_quantity)
+        name: productForm.name,
+        price: priceNum,
+        category: productForm.category || 'General',
+        stock_quantity: stockNum
       };
 
       await api.post('/products', payload);
       
       setShowProductModal(false);
+      // Reset form to default
       setProductForm({ name: '', price: '', category: 'Coffee', stock_quantity: '' });
       fetchInitialData(); // Refresh list and stats
-      alert("Product added successfully! ☕");
+      alert("Item added to inventory! ✅");
     } catch (err) {
       console.error(err);
-      alert("Error adding product. Check if price/stock are numbers.");
+      alert("Error: " + (err.response?.data?.message || "Check your connection"));
     }
   };
 
@@ -123,7 +132,7 @@ export default function AdminDashboard() {
       {/* ACTION BUTTONS */}
       <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
         <button onClick={() => setShowProductModal(true)} className="add-btn">
-          <Plus size={18} /> Add New Coffee
+          <Plus size={18} /> Add Menu Item
         </button>
         <button onClick={() => setShowStaffModal(true)} className="add-btn" style={{ background: '#6c757d' }}>
           <Users size={18} /> Register Cashier
@@ -159,7 +168,7 @@ export default function AdminDashboard() {
             <form onSubmit={handleAddProduct} style={{ display: 'flex', flexDirection: 'column', gap: '15px', textAlign: 'left' }}>
               <input 
                 type="text" 
-                placeholder="Product Name" 
+                placeholder="Item Name (e.g. Carbonara)" 
                 required 
                 className="premium-input" 
                 value={productForm.name} 
@@ -176,7 +185,7 @@ export default function AdminDashboard() {
               />
               <input 
                 type="text" 
-                placeholder="Category (e.g. Coffee)" 
+                placeholder="Category (e.g. Pasta, Pastries)" 
                 className="premium-input" 
                 value={productForm.category} 
                 onChange={(e) => setProductForm({...productForm, category: e.target.value})} 
@@ -214,7 +223,7 @@ export default function AdminDashboard() {
             </thead>
             <tbody>
               {products.length === 0 ? (
-                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No products found. Add your first coffee!</td></tr>
+                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No items found. Build your menu!</td></tr>
               ) : (
                 products.map(p => (
                   <tr key={p.id}>
