@@ -193,3 +193,63 @@ body {
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
+/* Login Page Specifics */
+.login-page {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at top left, #fed8b1 0%, #fdfaf7 40%);
+}
+
+.role-card {
+  width: 220px;
+  cursor: pointer;
+  padding: 40px 20px;
+  transition: all 0.3s ease;
+}
+
+.role-card:hover {
+  border-color: var(--coffee-medium);
+  background: #fff;
+  transform: translateY(-10px);
+}
+
+.login-form-container {
+  width: 380px;
+  padding: 40px;
+  position: relative;
+}
+
+.back-btn {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: none;
+  border: none;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* Logout Spacing Fix */
+.logout-btn {
+  margin-left: 50px; /* This pushes it away from the Title text */
+  padding: 10px 20px;
+  letter-spacing: 0.5px;
+}
+
+/* Add this to dashboard.css */
+.product-card-grid .glass-card {
+  border: 1px solid transparent;
+}
+
+.product-card-grid .glass-card:hover {
+  border-color: var(--coffee-light);
+  box-shadow: 0 10px 25px rgba(111, 78, 55, 0.15);
+  transform: scale(1.03);
+}

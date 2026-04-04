@@ -1,43 +1,85 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import { User, ShieldCheck, Coffee, ArrowLeft } from 'lucide-react';
+import './dashboard.css';
 
 export default function Login() {
+  const [role, setRole] = useState(null); // 'admin' or 'cashier'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const res = await api.post('/auth/login', { email, password, role });
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('role', role);
       
-      // Save credentials to localStorage
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('role', response.data.user.role);
-
-      // Redirect based on role
-      if (response.data.user.role === 'ADMIN') {
-        navigate('/admin');
-      } else {
-        navigate('/cashier');
-      }
+      // Redirect based on selected role
+      window.location.href = role === 'admin' ? '/admin' : '/cashier';
     } catch (err) {
-      alert("Login Failed: " + (err.response?.data?.error || "Check credentials"));
+      alert("Invalid Credentials for " + role);
     }
   };
 
+  if (!role) {
+    return (
+      <div className="login-page">
+        <div className="role-selection-container">
+          <header style={{ textAlign: 'center', marginBottom: '40px' }}>
+            <Coffee size={60} color="var(--coffee-medium)" />
+            <h1 style={{ color: 'var(--coffee-dark)', marginTop: '10px' }}>Cafe POS System</h1>
+            <p style={{ color: '#888' }}>Please select your portal to continue</p>
+          </header>
+
+          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+            <div className="glass-card role-card" onClick={() => setRole('admin')}>
+              <ShieldCheck size={48} color="var(--coffee-medium)" />
+              <h3>Administrator</h3>
+              <p>Manage Menu & Stats</p>
+            </div>
+
+            <div className="glass-card role-card" onClick={() => setRole('cashier')}>
+              <User size={48} color="var(--coffee-medium)" />
+              <h3>Cashier</h3>
+              <p>Take Orders & Receipts</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '100px' }}>
-      <form onSubmit={handleLogin} style={{ border: '1px solid #ddd', padding: '20px', borderRadius: '8px' }}>
-        <h2>☕ Cafe POS Login</h2>
-        <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required style={inputStyle} /><br/>
-        <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} required style={inputStyle} /><br/>
-        <button type="submit" style={btnStyle}>Login</button>
-      </form>
+    <div className="login-page">
+      <div className="glass-card login-form-container">
+        <button className="back-btn" onClick={() => setRole(null)}>
+          <ArrowLeft size={18} /> Back
+        </button>
+        
+        <h2 style={{ textTransform: 'capitalize', color: 'var(--coffee-dark)' }}>{role} Login</h2>
+        <p style={{ marginBottom: '25px', fontSize: '14px', color: '#888' }}>Enter your credentials to access the {role} panel.</p>
+
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <input 
+            type="email" 
+            placeholder="Email Address" 
+            className="premium-input" 
+            onChange={(e) => setEmail(e.target.value)} 
+            required 
+          />
+          <input 
+            type="password" 
+            placeholder="Password" 
+            className="premium-input" 
+            onChange={(e) => setPassword(e.target.value)} 
+            required 
+          />
+          <button type="submit" className="save-btn" style={{ width: '100%', marginTop: '10px' }}>
+            Login as {role}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
-
-const inputStyle = { display: 'block', margin: '10px 0', padding: '10px', width: '250px' };
-const btnStyle = { width: '100%', padding: '10px', background: '#6F4E37', color: 'white', border: 'none', cursor: 'pointer' };
