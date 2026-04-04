@@ -29,12 +29,11 @@ export default function Cashier() {
 
   const addToCart = (product) => {
     if (!product || product.stock_quantity <= 0) return;
-
     setCart(currentCart => {
       const existing = currentCart.find(item => item.id === product.id);
       if (existing) {
         if (existing.quantity >= product.stock_quantity) {
-          alert("Limit reached based on available stock.");
+          alert("Stock limit reached!");
           return currentCart;
         }
         return currentCart.map(item =>
@@ -51,10 +50,7 @@ export default function Cashier() {
       currentCart.map(item => {
         if (item.id === id) {
           const newQty = item.quantity + delta;
-          if (newQty > (productInMenu?.stock_quantity || 0) && delta > 0) {
-            alert("Not enough stock!");
-            return item;
-          }
+          if (newQty > (productInMenu?.stock_quantity || 0) && delta > 0) return item;
           return newQty > 0 ? { ...item, quantity: newQty } : item;
         }
         return item;
@@ -67,111 +63,88 @@ export default function Cashier() {
   };
 
   const handleCheckout = async () => {
-    if (cart.length === 0) return alert("Cart is empty!");
+    if (cart.length === 0) return;
     
-    // FIX: Retrieve user info to solve the 'user_id' database error seen in your video
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user || !user.id) return alert("Session expired. Please login again.");
+    // CRITICAL FIX: Retrieve user info from storage to satisfy the 'user_id' requirement
+    const userData = JSON.parse(localStorage.getItem('user'));
+    if (!userData || !userData.id) return alert("Session error: Please log out and back in.");
 
-    const total = calculateTotal();
     setProcessing(true);
-
     try {
+      const total = calculateTotal();
       await api.post('/orders', { 
-        user_id: user.id, // This is the missing link from your error message
+        user_id: userData.id, // This fixes the 500/Schema Cache error
+        total_price: parseFloat(total),
         items: cart.map(item => ({
           product_id: item.id,
           quantity: item.quantity,
           subtotal: (Number(item.price) * item.quantity).toFixed(2)
-        })), 
-        total_price: parseFloat(total) 
+        }))
       });
 
-      alert("Order Placed Successfully! 🧾");
+      alert("Order Placed! 🧾");
       setCart([]);
       fetchProducts(); 
     } catch (err) {
-      console.error(err);
-      alert("Checkout failed: " + (err.response?.data?.message || "Check connection"));
+      alert(err.response?.data?.error || "Checkout failed. Ensure your database 'orders' table has 'user_id'.");
     } finally {
       setProcessing(false);
     }
   };
 
-  const logout = () => {
-    localStorage.clear();
-    window.location.href = "/";
-  };
-
-  // Improved Filtering Logic
   const categories = ["All", ...new Set(products.map(p => p.category))];
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = activeCategory === "All" || p.category === activeCategory;
-    return matchesSearch && matchesCategory;
-  });
+
+  const filteredProducts = products.filter(p => 
+    (activeCategory === "All" || p.category === activeCategory) &&
+    (p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.category.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   return (
     <div className="cashier-layout" style={{ display: 'flex', height: '100vh', backgroundColor: '#f9f7f5' }}>
-      {/* LEFT: Menu Section */}
       <div style={{ flex: 3, padding: '30px', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '25px' }}>
-          <h1 style={{ margin: 0, color: 'var(--coffee-dark)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Coffee size={32} color="var(--coffee-medium)" /> Cafe POS
-          </h1>
-          
-          <div style={{ position: 'relative', width: '350px' }}>
-            <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#888' }} />
-            <input 
-              type="text" 
-              placeholder="Search menu..." 
-              className="premium-input" 
-              style={{ paddingLeft: '40px', marginBottom: 0, borderRadius: '25px' }}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <h1 style={{ color: 'var(--coffee-dark)', margin: 0 }}>JCA Cucina POS</h1>
+          <div style={{ display: 'flex', gap: '10px' }}>
+             <div style={{ position: 'relative' }}>
+                <Search size={18} style={{ position: 'absolute', left: '10px', top: '12px', color: '#888' }} />
+                <input 
+                  type="text" 
+                  placeholder="Search menu..." 
+                  className="premium-input" 
+                  style={{ paddingLeft: '35px', width: '250px', marginBottom: 0 }}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+             </div>
+             <button onClick={() => {localStorage.clear(); window.location.href="/"}} className="logout-btn"><LogOut size={18} /></button>
           </div>
-
-          <button onClick={logout} className="logout-btn">
-            <LogOut size={18} /> Logout
-          </button>
         </div>
 
-        {/* Category Filter Bar */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', overflowX: 'auto', paddingBottom: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', overflowX: 'auto' }}>
           {categories.map(cat => (
             <button 
-              key={cat}
+              key={cat} 
               onClick={() => setActiveCategory(cat)}
-              className={`category-pill ${activeCategory === cat ? 'active' : ''}`}
+              className={activeCategory === cat ? "category-btn active" : "category-btn"}
+              style={{
+                padding: '8px 15px', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                backgroundColor: activeCategory === cat ? 'var(--coffee-medium)' : '#fff',
+                color: activeCategory === cat ? '#fff' : '#666'
+              }}
             >
               {cat}
             </button>
           ))}
         </div>
 
-        {loading ? (
-          <div style={{ textAlign: 'center', marginTop: '100px' }}>
-            <Loader2 className="animate-spin" size={48} color="var(--coffee-medium)" />
-            <p>Brewing your menu...</p>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
+        {loading ? <Loader2 className="animate-spin" /> : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
             {filteredProducts.map(p => (
-              <div 
-                key={p.id} 
-                className={`glass-card product-card ${p.stock_quantity <= 0 ? 'out-of-stock' : ''}`} 
-                onClick={() => p.stock_quantity > 0 && addToCart(p)}
-              >
-                {p.stock_quantity <= 0 && <div className="sold-out-badge">SOLD OUT</div>}
-                <h3 style={{ marginBottom: '5px' }}>{p.name}</h3>
+              <div key={p.id} className="glass-card product-card" onClick={() => addToCart(p)} style={{ opacity: p.stock_quantity <= 0 ? 0.5 : 1 }}>
                 <span className="category-tag">{p.category}</span>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: 'var(--coffee-medium)' }}>
-                    ${Number(p.price).toFixed(2)}
-                  </span>
-                  <small style={{ color: p.stock_quantity < 10 ? '#dc3545' : '#888', fontWeight: '500' }}>
-                    Stock: {p.stock_quantity}
-                  </small>
+                <h3 style={{ margin: '10px 0' }}>{p.name}</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ fontWeight: 'bold' }}>${Number(p.price).toFixed(2)}</span>
+                  <small>Stock: {p.stock_quantity}</small>
                 </div>
               </div>
             ))}
@@ -179,49 +152,32 @@ export default function Cashier() {
         )}
       </div>
 
-      {/* RIGHT: Order Summary */}
-      <div className="glass-card cart-sidebar" style={{ flex: 1, margin: '20px', display: 'flex', flexDirection: 'column', borderRadius: '24px', padding: '25px', border: '1px solid rgba(255,255,255,0.3)' }}>
-        <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--coffee-dark)', marginTop: 0 }}>
-          <ShoppingCart /> Order Summary
-        </h2>
-
-        <div style={{ flex: 1, overflowY: 'auto', margin: '15px 0' }}>
-          {cart.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#aaa', marginTop: '60px' }}>
-              <Coffee size={40} style={{ opacity: 0.2, marginBottom: '10px' }} />
-              <p>Your cart is empty</p>
-            </div>
-          ) : (
-            cart.map(item => (
-              <div key={item.id} className="cart-item">
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: '600' }}>{item.name}</span>
-                  <span style={{ fontWeight: 'bold' }}>${(Number(item.price) * item.quantity).toFixed(2)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
-                  <div className="qty-controls">
-                    <Minus size={14} className="qty-btn" onClick={() => updateQuantity(item.id, -1)} />
-                    <span style={{ minWidth: '20px', textAlign: 'center' }}>{item.quantity}</span>
-                    <Plus size={14} className="qty-btn" onClick={() => updateQuantity(item.id, 1)} />
-                  </div>
-                  <Trash2 size={16} color="#ff4d4f" onClick={() => setCart(cart.filter(i => i.id !== item.id))} style={{ cursor: 'pointer' }} />
-                </div>
+      <div className="glass-card" style={{ flex: 1, margin: '20px', display: 'flex', flexDirection: 'column', padding: '20px' }}>
+        <h2>Current Order</h2>
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {cart.map(item => (
+            <div key={item.id} style={{ marginBottom: '15px', padding: '10px', borderBottom: '1px solid #f0f0f0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+                <span>{item.name}</span>
+                <span>${(Number(item.price) * item.quantity).toFixed(2)}</span>
               </div>
-            ))
-          )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+                <div className="qty-controls">
+                  <Minus size={14} onClick={() => updateQuantity(item.id, -1)} />
+                  <span>{item.quantity}</span>
+                  <Plus size={14} onClick={() => updateQuantity(item.id, 1)} />
+                </div>
+                <Trash2 size={16} color="red" onClick={() => setCart(cart.filter(i => i.id !== item.id))} />
+              </div>
+            </div>
+          ))}
         </div>
-
-        <div style={{ borderTop: '2px dashed #eee', paddingTop: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-            <span style={{ color: '#666' }}>Total Amount</span>
-            <span style={{ fontWeight: '800', fontSize: '1.6rem', color: 'var(--coffee-dark)' }}>${calculateTotal()}</span>
+        <div style={{ borderTop: '2px solid #eee', paddingTop: '15px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 'bold' }}>
+            <span>Total</span>
+            <span>${calculateTotal()}</span>
           </div>
-          <button 
-            onClick={handleCheckout} 
-            className="save-btn" 
-            disabled={cart.length === 0 || processing}
-            style={{ width: '100%', padding: '18px', borderRadius: '15px', display: 'flex', justifyContent: 'center' }}
-          >
+          <button onClick={handleCheckout} className="save-btn" disabled={cart.length === 0 || processing} style={{ width: '100%', marginTop: '15px' }}>
             {processing ? <Loader2 className="animate-spin" /> : "Complete Payment"}
           </button>
         </div>
