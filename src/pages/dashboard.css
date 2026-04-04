@@ -236,20 +236,42 @@ body {
   font-size: 13px;
 }
 
-/* Logout Spacing Fix */
+/* Ensure the header container allows for wide spacing */
+.admin-container header, 
+.cashier-header {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Updated Logout Button with the extra margin you requested */
 .logout-btn {
-  margin-left: 50px; /* This pushes it away from the Title text */
-  padding: 10px 20px;
-  letter-spacing: 0.5px;
+  margin-left: 100px; /* Pushes it further away from the text */
+  background: transparent;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  transition: all 0.2s;
 }
 
-/* Add this to dashboard.css */
-.product-card-grid .glass-card {
-  border: 1px solid transparent;
+.logout-btn:hover {
+  background: #dc3545;
+  color: white;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
 }
 
-.product-card-grid .glass-card:hover {
-  border-color: var(--coffee-light);
-  box-shadow: 0 10px 25px rgba(111, 78, 55, 0.15);
-  transform: scale(1.03);
+/* Improved Login/Role Card transitions */
+.role-card {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.role-card:active {
+  transform: scale(0.95);
 }

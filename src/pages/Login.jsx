@@ -9,18 +9,25 @@ export default function Login() {
   const [password, setPassword] = useState('');
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await api.post('/auth/login', { email, password, role });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('role', role);
-      
-      // Redirect based on selected role
-      window.location.href = role === 'admin' ? '/admin' : '/cashier';
-    } catch (err) {
-      alert("Invalid Credentials for " + role);
+  e.preventDefault();
+  try {
+    const res = await api.post('/auth/login', { email, password, role });
+    
+    // 1. Save data to localStorage
+    localStorage.setItem('token', res.data.token);
+    localStorage.setItem('role', role);
+
+    // 2. Forced Redirect using window.location.href to clear state
+    if (role === 'admin') {
+      window.location.href = '/admin';
+    } else {
+      window.location.href = '/cashier';
     }
-  };
+  } catch (err) {
+    console.error("Login Error:", err);
+    alert("Invalid Credentials for " + role + ". Please try again.");
+  }
+};
 
   if (!role) {
     return (
