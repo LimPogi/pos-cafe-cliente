@@ -1,0 +1,58 @@
+/* Premium Cafe Theme */
+:root {
+  --coffee-dark: #3c2a21;
+  --coffee-medium: #6f4e37;
+  --coffee-light: #ecb176;
+  --cream: #fed8b1;
+}
+
+body {
+  background-color: #fdfaf7; /* Soft cream background */
+  font-family: 'Inter', sans-serif;
+}
+
+.admin-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+.glass-card {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(111, 78, 55, 0.1);
+  transition: transform 0.2s;
+}
+
+.glass-card:hover {
+  transform: translateY(-5px);
+}
+
+.premium-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px; /* Gives rows a "floating" look */
+}
+
+.premium-table th {
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #888;
+  padding: 15px;
+}
+
+.premium-table tr {
+  background: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+.premium-table td {
+  padding: 20px;
+  border-top: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.premium-table tr td:first-child { border-left: 1px solid #f0f0f0; border-radius: 10px 0 0 10px; }
+.premium-table tr td:last-child { border-right: 1px solid #f0f0f0; border-radius: 0 10px 10px 0; }
