@@ -13,19 +13,20 @@ export default function Login() {
   try {
     const res = await api.post('/auth/login', { email, password, role });
     
-    // 1. Save data to localStorage
+    // 1. Save credentials to local storage
     localStorage.setItem('token', res.data.token);
     localStorage.setItem('role', role);
 
-    // 2. Forced Redirect using window.location.href to clear state
+    // 2. Force a full page reload to the specific dashboard
+    // This is the most reliable way to clear the login state
     if (role === 'admin') {
-      window.location.href = '/admin';
+      window.location.assign('/admin');
     } else {
-      window.location.href = '/cashier';
+      window.location.assign('/cashier');
     }
   } catch (err) {
     console.error("Login Error:", err);
-    alert("Invalid Credentials for " + role + ". Please try again.");
+    alert("Login failed! Please check your credentials for the " + role + " portal.");
   }
 };
 
