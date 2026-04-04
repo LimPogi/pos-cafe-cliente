@@ -1,149 +1,108 @@
 import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
 import ProductCard from '../components/ProductCard';
-import { ShoppingCart, Trash2, CreditCard } from 'lucide-react';
+import { ShoppingCart, Trash2, CreditCard, Coffee, Loader2 } from 'lucide-react';
+import './dashboard.css'; 
 
 export default function Cashier() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  // ✅ SAFE FETCH
   const fetchProducts = async () => {
     try {
+      setLoading(true);
       const res = await api.get('/products');
-      console.log("PRODUCTS:", res.data);
-
       setProducts(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      console.error("FETCH PRODUCTS ERROR:", err);
-      setProducts([]);
+      console.error("FETCH ERROR:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const addToCart = (product) => {
     const existing = cart.find(item => item.id === product.id);
-
     if (existing) {
       setCart(cart.map(item =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
+        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
       ));
     } else {
       setCart([...cart, { ...product, quantity: 1 }]);
     }
   };
 
-  const removeFromCart = (id) => {
-    setCart(cart.filter(item => item.id !== id));
-  };
+  const removeFromCart = (id) => setCart(cart.filter(item => item.id !== id));
 
-  // ✅ SAFE TOTAL CALCULATION
   const calculateTotal = () => {
-    return cart
-      .reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0)
-      .toFixed(2);
+    return cart.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0).toFixed(2);
   };
 
   const handleCheckout = async () => {
     if (cart.length === 0) return alert("Cart is empty!");
-
+    const total = calculateTotal();
     try {
-      await api.post('/orders', {
-        items: cart,
-        total_price: parseFloat(calculateTotal())
-      });
-
+      await api.post('/orders', { items: cart, total_price: parseFloat(total) });
       alert("Order Placed Successfully! 🧾");
+      // Optional: printReceipt(cart, total); 
       setCart([]);
     } catch (err) {
-      console.error("CHECKOUT ERROR:", err);
-      alert("Checkout failed: " + err.message);
+      alert("Checkout failed. Check your connection.");
     }
   };
 
-  const printReceipt = (orderItems, total) => {
-    const receiptWindow = window.open('', '_blank', 'width=300,height=600');
-
-    receiptWindow.document.write(`
-      <html>
-        <body style="font-family: monospace; width: 250px;">
-          <h2 style="text-align:center">☕ CAFE POS</h2>
-          <hr>
-          ${orderItems.map(item => `
-            <div style="display:flex; justify-content:space-between">
-              <span>${item.name} x${item.quantity}</span>
-              <span>$${((item.price || 0) * item.quantity).toFixed(2)}</span>
-            </div>
-          `).join('')}
-          <hr>
-          <h3 style="text-align:right">TOTAL: $${total}</h3>
-          <p style="text-align:center">Thank you!</p>
-        </body>
-      </html>
-    `);
-
-    receiptWindow.document.close();
-    receiptWindow.print();
-  };
-
   return (
-    <div style={{ display: 'flex', height: '100vh', backgroundColor: '#f9f9f9' }}>
-
+    <div style={{ display: 'flex', height: '100vh', backgroundColor: 'var(--bg-soft)' }}>
       {/* LEFT: Menu */}
-      <div style={{ flex: 3, padding: '20px', overflowY: 'auto' }}>
-        <h1>Menu</h1>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-          gap: '20px'
-        }}>
-          {products.length === 0 ? (
-            <p>No products available</p>
-          ) : (
-            products.map(p => (
-              <ProductCard key={p.id} product={p} addToCart={addToCart} />
-            ))
-          )}
+      <div style={{ flex: 3, padding: '30px', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
+          <Coffee size={32} color="var(--coffee-medium)" />
+          <h1 style={{ margin: 0, color: 'var(--coffee-dark)' }}>Cafe Menu</h1>
         </div>
+
+        {loading ? (
+          <div style={{ textAlign: 'center', marginTop: '50px' }}>
+            <Loader2 className="animate-spin" size={40} color="var(--coffee-medium)" />
+            <p>Brewing your menu...</p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
+            {products.length === 0 ? (
+              <p>No products available.</p>
+            ) : (
+              products.map(p => (
+                <div key={p.id} className="glass-card" style={{ padding: '15px', cursor: 'pointer' }} onClick={() => addToCart(p)}>
+                  <h3 style={{ margin: '0 0 5px 0' }}>{p.name}</h3>
+                  <span className="category-tag">{p.category}</span>
+                  <p style={{ fontWeight: 'bold', color: 'var(--coffee-medium)', marginTop: '10px' }}>${Number(p.price).toFixed(2)}</p>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
-      {/* RIGHT: Cart */}
-      <div style={{
-        flex: 1,
-        backgroundColor: '#fff',
-        borderLeft: '2px solid #ddd',
-        padding: '20px',
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
-        <h2><ShoppingCart /> Current Order</h2>
+      {/* RIGHT: Cart Sidebar */}
+      <div className="glass-card" style={{ flex: 1, margin: '20px', display: 'flex', flexDirection: 'column', borderRadius: '15px', textAlign: 'left' }}>
+        <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--coffee-dark)' }}>
+          <ShoppingCart /> Cart
+        </h2>
 
-        <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ flex: 1, overflowY: 'auto', margin: '20px 0' }}>
           {cart.length === 0 ? (
-            <p>No items in cart</p>
+            <p style={{ color: '#999', textAlign: 'center' }}>Your cart is empty</p>
           ) : (
             cart.map(item => (
-              <div key={item.id} style={cartItemStyle}>
+              <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #eee' }}>
                 <div>
-                  <strong>{item.name}</strong> <br />
-                  <small>{item.quantity}x ${item.price}</small>
+                  <div style={{ fontWeight: '600' }}>{item.name}</div>
+                  <small>{item.quantity}x ${Number(item.price).toFixed(2)}</small>
                 </div>
-
-                <button
-                  onClick={() => removeFromCart(item.id)}
-                  style={{
-                    border: 'none',
-                    background: 'none',
-                    color: 'red',
-                    cursor: 'pointer'
-                  }}
-                >
+                <button onClick={() => removeFromCart(item.id)} style={{ border: 'none', background: 'none', color: '#dc3545', cursor: 'pointer' }}>
                   <Trash2 size={18} />
                 </button>
               </div>
@@ -151,38 +110,16 @@ export default function Cashier() {
           )}
         </div>
 
-        <div style={{ borderTop: '2px solid #eee', paddingTop: '20px' }}>
-          <h3>Total: ${calculateTotal()}</h3>
-
-          <button onClick={handleCheckout} style={checkoutBtnStyle}>
-            <CreditCard /> Checkout
+        <div style={{ borderTop: '2px solid var(--bg-soft)', paddingTop: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <span style={{ fontWeight: 'bold' }}>Total</span>
+            <span style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--coffee-medium)' }}>${calculateTotal()}</span>
+          </div>
+          <button onClick={handleCheckout} className="save-btn" style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '10px' }}>
+            <CreditCard size={20} /> Checkout
           </button>
         </div>
       </div>
     </div>
   );
 }
-
-// STYLES
-const cartItemStyle = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  padding: '10px 0',
-  borderBottom: '1px solid #eee'
-};
-
-const checkoutBtnStyle = {
-  width: '100%',
-  padding: '15px',
-  backgroundColor: '#28a745',
-  color: 'white',
-  border: 'none',
-  borderRadius: '8px',
-  fontSize: '18px',
-  fontWeight: 'bold',
-  cursor: 'pointer',
-  display: 'flex',
-  justifyContent: 'center',
-  gap: '10px'
-};
