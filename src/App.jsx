@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import Cashier from './pages/Cashier';
+import Register from './pages/Register';
 
 // Improved Helper to protect routes
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -23,8 +24,9 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* 1. Public Login Page */}
+        {/* 1. Public Pages (Accessible by everyone) */}
         <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} /> {/* ADDED THIS LINE */}
         
         {/* 2. Admin Only Route */}
         <Route path="/admin" element={
