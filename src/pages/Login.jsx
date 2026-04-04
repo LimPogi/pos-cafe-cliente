@@ -4,32 +4,42 @@ import { User, ShieldCheck, Coffee, ArrowLeft } from 'lucide-react';
 import './dashboard.css';
 
 export default function Login() {
-  const [role, setRole] = useState(null); // 'admin' or 'cashier'
+  const [role, setRole] = useState(null); // Tracks 'admin' or 'cashier'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
-  e.preventDefault();
-  try {
-    const res = await api.post('/auth/login', { email, password, role });
+    e.preventDefault();
+    setLoading(true);
     
-    // 1. Save credentials to local storage
-    localStorage.setItem('token', res.data.token);
-    localStorage.setItem('role', role);
+    try {
+      // We send the email, password, AND the selected role to the backend
+      // This allows the server to verify the user belongs to this specific portal
+      const res = await api.post('/auth/login', { email, password, role });
+      
+      // 1. Save the access token and the confirmed role to localStorage
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('role', res.data.user.role);
 
-    // 2. Force a full page reload to the specific dashboard
-    // This is the most reliable way to clear the login state
-    if (role === 'admin') {
-      window.location.assign('/admin');
-    } else {
-      window.location.assign('/cashier');
+      // 2. Redirect based on the role returned by the server
+      if (res.data.user.role === 'admin') {
+        window.location.assign('/admin');
+      } else {
+        window.location.assign('/cashier');
+      }
+    } catch (err) {
+      console.error("Login Error:", err);
+      
+      // Extract the specific error message from your Express backend
+      const errorMessage = err.response?.data?.error || "Login failed. Please try again.";
+      alert(errorMessage);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Login Error:", err);
-    alert("Login failed! Please check your credentials for the " + role + " portal.");
-  }
-};
+  };
 
+  // PORTAL SELECTION VIEW
   if (!role) {
     return (
       <div className="login-page">
@@ -41,12 +51,14 @@ export default function Login() {
           </header>
 
           <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+            {/* Admin Portal Card */}
             <div className="glass-card role-card" onClick={() => setRole('admin')}>
               <ShieldCheck size={48} color="var(--coffee-medium)" />
               <h3>Administrator</h3>
               <p>Manage Menu & Stats</p>
             </div>
 
+            {/* Cashier Portal Card */}
             <div className="glass-card role-card" onClick={() => setRole('cashier')}>
               <User size={48} color="var(--coffee-medium)" />
               <h3>Cashier</h3>
@@ -58,6 +70,7 @@ export default function Login() {
     );
   }
 
+  // LOGIN FORM VIEW
   return (
     <div className="login-page">
       <div className="glass-card login-form-container">
@@ -66,13 +79,16 @@ export default function Login() {
         </button>
         
         <h2 style={{ textTransform: 'capitalize', color: 'var(--coffee-dark)' }}>{role} Login</h2>
-        <p style={{ marginBottom: '25px', fontSize: '14px', color: '#888' }}>Enter your credentials to access the {role} panel.</p>
+        <p style={{ marginBottom: '25px', fontSize: '14px', color: '#888' }}>
+          Enter your credentials to access the {role} panel.
+        </p>
 
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <input 
             type="email" 
             placeholder="Email Address" 
             className="premium-input" 
+            value={email}
             onChange={(e) => setEmail(e.target.value)} 
             required 
           />
@@ -80,11 +96,17 @@ export default function Login() {
             type="password" 
             placeholder="Password" 
             className="premium-input" 
+            value={password}
             onChange={(e) => setPassword(e.target.value)} 
             required 
           />
-          <button type="submit" className="save-btn" style={{ width: '100%', marginTop: '10px' }}>
-            Login as {role}
+          <button 
+            type="submit" 
+            className="save-btn" 
+            disabled={loading}
+            style={{ width: '100%', marginTop: '10px', opacity: loading ? 0.7 : 1 }}
+          >
+            {loading ? "Authenticating..." : `Login as ${role}`}
           </button>
         </form>
       </div>
