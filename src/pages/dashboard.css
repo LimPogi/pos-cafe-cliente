@@ -275,3 +275,18 @@ body {
 .role-card:active {
   transform: scale(0.95);
 }
+.premium-input {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1.5px solid #eee;
+  background: white; /* Ensure solid background */
+  color: #333 !important; /* Forces dark, visible text */
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.premium-input:focus {
+  border-color: var(--coffee-medium);
+}

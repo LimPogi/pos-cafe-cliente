@@ -26,7 +26,7 @@ function App() {
         {/* 1. Public Login Page */}
         <Route path="/" element={<Login />} />
         
-        {/* 2. Admin Only Route (Looking for 'admin') */}
+        {/* 2. Admin Only Route */}
         <Route path="/admin" element={
           <ProtectedRoute allowedRoles={['admin']}>
             <AdminDashboard />
