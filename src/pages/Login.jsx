@@ -14,22 +14,33 @@ export default function Login() {
     setLoading(true);
     
     try {
-      // We send the email, password, AND the selected role to the backend
+      // 1. Send credentials and the selected role to the backend
       const res = await api.post('/auth/login', { email, password, role });
       
-      // 1. Save the access token and the confirmed role to localStorage
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('role', res.data.user.role);
+      const user = res.data.user;
 
-      // 2. Redirect based on the role returned by the server
-      if (res.data.user.role === 'admin') {
+      // 2. EXTRA SAFETY: Check if the role returned by DB matches the portal selected
+      if (user.role !== role) {
+        alert(`Access Denied: This account is not registered as a ${role}. 🛡️`);
+        setLoading(false);
+        return;
+      }
+
+      // 3. CRITICAL: Save everything the app needs to function
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('role', user.role);
+      // We save the full user object as a string so Cashier.jsx can get the user_id
+      localStorage.setItem('user', JSON.stringify(user));
+
+      // 4. Redirect based on the role
+      if (user.role === 'admin') {
         window.location.assign('/admin');
       } else {
         window.location.assign('/cashier');
       }
     } catch (err) {
       console.error("Login Error:", err);
-      const errorMessage = err.response?.data?.error || "Login failed. Please try again.";
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || "Login failed. Please check your credentials.";
       alert(errorMessage);
     } finally {
       setLoading(false);
@@ -69,7 +80,7 @@ export default function Login() {
   return (
     <div className="login-page">
       <div className="glass-card login-form-container">
-        <button className="back-btn" onClick={() => setRole(null)}>
+        <button className="back-btn" onClick={() => { setRole(null); setEmail(''); setPassword(''); }}>
           <ArrowLeft size={18} /> Back
         </button>
         
@@ -105,7 +116,6 @@ export default function Login() {
           </button>
         </form>
 
-        {/* REGISTRATION LINK (Now fixed inside the container) */}
         <p style={{ marginTop: '20px', fontSize: '13px', textAlign: 'center', color: '#888' }}>
           Don't have an account? 
           <a href="/register" style={{ color: 'var(--coffee-medium)', marginLeft: '5px', fontWeight: 'bold', textDecoration: 'none' }}>
