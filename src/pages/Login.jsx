@@ -15,7 +15,6 @@ export default function Login() {
     
     try {
       // We send the email, password, AND the selected role to the backend
-      // This allows the server to verify the user belongs to this specific portal
       const res = await api.post('/auth/login', { email, password, role });
       
       // 1. Save the access token and the confirmed role to localStorage
@@ -30,8 +29,6 @@ export default function Login() {
       }
     } catch (err) {
       console.error("Login Error:", err);
-      
-      // Extract the specific error message from your Express backend
       const errorMessage = err.response?.data?.error || "Login failed. Please try again.";
       alert(errorMessage);
     } finally {
@@ -39,7 +36,7 @@ export default function Login() {
     }
   };
 
-  // PORTAL SELECTION VIEW
+  // --- VIEW 1: PORTAL SELECTION ---
   if (!role) {
     return (
       <div className="login-page">
@@ -51,14 +48,12 @@ export default function Login() {
           </header>
 
           <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
-            {/* Admin Portal Card */}
             <div className="glass-card role-card" onClick={() => setRole('admin')}>
               <ShieldCheck size={48} color="var(--coffee-medium)" />
               <h3>Administrator</h3>
               <p>Manage Menu & Stats</p>
             </div>
 
-            {/* Cashier Portal Card */}
             <div className="glass-card role-card" onClick={() => setRole('cashier')}>
               <User size={48} color="var(--coffee-medium)" />
               <h3>Cashier</h3>
@@ -70,7 +65,7 @@ export default function Login() {
     );
   }
 
-  // LOGIN FORM VIEW
+  // --- VIEW 2: LOGIN FORM ---
   return (
     <div className="login-page">
       <div className="glass-card login-form-container">
@@ -109,6 +104,14 @@ export default function Login() {
             {loading ? "Authenticating..." : `Login as ${role}`}
           </button>
         </form>
+
+        {/* REGISTRATION LINK (Now fixed inside the container) */}
+        <p style={{ marginTop: '20px', fontSize: '13px', textAlign: 'center', color: '#888' }}>
+          Don't have an account? 
+          <a href="/register" style={{ color: 'var(--coffee-medium)', marginLeft: '5px', fontWeight: 'bold', textDecoration: 'none' }}>
+            Register here
+          </a>
+        </p>
       </div>
     </div>
   );
