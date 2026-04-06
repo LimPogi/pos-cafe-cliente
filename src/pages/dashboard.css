@@ -360,3 +360,32 @@ body {
   padding: 15px;
   font-size: 1.1rem;
 }
+
+.product-card {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 180px;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(111, 78, 55, 0.1);
+  border-color: var(--coffee-light);
+}
+
+.cart-sidebar {
+  border: none !important;
+  box-shadow: -10px 0 30px rgba(0,0,0,0.05) !important;
+}
+
+.remove-item-btn:hover {
+  transform: scale(1.1);
+  color: #ff0000 !important;
+}
