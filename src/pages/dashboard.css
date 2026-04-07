@@ -1,19 +1,11 @@
-/* --- 1. THEME VARIABLES & BASE --- */
+/* Premium Cafe Theme Variables */
 :root {
   --coffee-dark: #3c2a21;
   --coffee-medium: #6f4e37;
   --coffee-light: #ecb176;
   --cream: #fed8b1;
   --bg-soft: #fdfaf7;
-  --white: #ffffff;
-  --danger: #dc3545;
-  --success: #28a745;
-  --gray-light: #f9f9f9;
-  --border-subtle: rgba(0, 0, 0, 0.05);
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
-
-* { box-sizing: border-box; }
 
 body {
   background-color: var(--bg-soft);
@@ -22,51 +14,21 @@ body {
   color: var(--coffee-dark);
 }
 
-/* --- 2. CORE CRM LAYOUT --- */
-.crm-wrapper {
-  display: flex;
-  min-height: 100vh;
-}
-
-.crm-sidebar {
-  width: 250px;
-  background: var(--white);
-  padding: 30px 20px;
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  height: 100%;
-  border-right: 1px solid var(--border-subtle);
-  z-index: 100;
-}
-
-.crm-main {
-  flex: 1;
-  margin-left: 250px; /* Offset for sidebar */
-  background-color: #f9f7f5;
+.admin-container {
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 40px;
 }
 
-.crm-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.dashboard-main-layout-crm {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 30px;
-}
-
-/* --- 3. REUSABLE GLASS CARDS & STATS --- */
+/* --- Cards & Stats --- */
 .glass-card {
-  background: var(--white);
+  background: white;
   border-radius: 15px;
-  box-shadow: var(--shadow);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(111, 78, 55, 0.1);
   padding: 25px;
+  flex: 1;
+  text-align: center;
   transition: transform 0.2s ease;
 }
 
@@ -74,130 +36,129 @@ body {
   transform: translateY(-5px);
 }
 
-/* Stats Styling */
-.crm-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.crm-stat-card {
-  text-align: center;
-}
-
-.crm-stat-card.highlight {
-  background: var(--coffee-medium);
-  color: var(--white);
-}
-
-.stat-label {
-  display: block;
-  font-size: 12px;
-  font-weight: bold;
-  text-transform: uppercase;
-  opacity: 0.8;
-  margin-bottom: 8px;
-}
-
-.stat-value {
+.stat-card h2 {
+  color: var(--coffee-dark);
+  margin: 10px 0 0 0;
   font-size: 2rem;
   font-weight: 700;
-  margin: 0;
 }
 
-/* --- 4. TABLES & INVENTORY --- */
-.premium-table-crm {
+.stat-card p {
+  color: #888;
+  margin: 0;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+/* --- Table Styling --- */
+.table-container {
+  background: white;
+  border-radius: 15px;
+  padding: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.premium-table {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 10px;
 }
 
-.premium-table-crm th {
+.premium-table th {
   text-align: left;
-  padding: 15px;
+  padding: 15px 20px;
+  border-bottom: 2px solid #f9f9f9;
   color: #999;
-  font-size: 12px;
+  font-size: 13px;
   text-transform: uppercase;
-  border-bottom: 1px solid var(--gray-light);
+  letter-spacing: 1px;
 }
 
-.premium-table-crm td {
-  padding: 15px;
-  border-bottom: 1px solid var(--gray-light);
-  font-size: 14px;
+.premium-table td {
+  padding: 20px;
+  border-bottom: 1px solid #f9f9f9;
+  font-size: 15px;
 }
 
-.badge {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
+.premium-table tr:last-child td {
+  border-bottom: none;
+}
+
+.category-tag {
   background: #fdf5ed;
   color: var(--coffee-medium);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-/* --- 5. BUTTONS & ACTIONS --- */
-.btn-primary-new, .save-btn, .add-btn {
-  background: var(--coffee-medium);
-  color: var(--white);
+/* --- Buttons --- */
+.add-btn {
+  background: #28a745;
+  color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 12px 24px;
   border-radius: 8px;
   cursor: pointer;
-  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: 0.2s;
+  font-weight: 600;
+  margin-bottom: 25px;
+  transition: background 0.2s;
 }
 
-.btn-primary-new:hover, .save-btn:hover {
+.add-btn:hover {
+  background: #218838;
+}
+
+.logout-btn {
+  background: transparent;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  background: #dc3545;
+  color: white;
+}
+
+.save-btn {
+  background: var(--coffee-medium);
+  color: white;
+  border: none;
+  padding: 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.save-btn:hover {
   background: var(--coffee-dark);
 }
 
-.sidebar-logout {
-  margin-top: auto;
-  background: transparent;
-  color: var(--danger);
-  border: 1px solid var(--danger);
-  padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  transition: 0.3s;
-}
-
-.sidebar-logout:hover {
-  background: var(--danger);
-  color: var(--white);
-}
-
-.actions-cell {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.action-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 5px;
-  transition: 0.2s;
-}
-
-.action-btn.edit { color: var(--coffee-medium); }
-.action-btn.delete { color: var(--danger); }
-.action-btn:hover { transform: scale(1.2); }
-
-/* --- 6. MODALS & INPUTS --- */
+/* --- Modal & Inputs --- */
 .modal-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
@@ -207,28 +168,329 @@ body {
 
 .modal-content {
   width: 400px;
-  background: white;
-  padding: 30px;
-  border-radius: 15px;
+  max-width: 90%;
 }
 
 .premium-input {
-  width: 100%;
   padding: 12px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  outline: none;
+  font-size: 14px;
+  background: #fafafa;
+  transition: border-color 0.2s;
+}
+
+.premium-input:focus {
+  border-color: var(--coffee-medium);
+  background: white;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Login Page Specifics */
+.login-page {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at top left, #fed8b1 0%, #fdfaf7 40%);
+}
+
+.role-card {
+  width: 220px;
+  cursor: pointer;
+  padding: 40px 20px;
+  transition: all 0.3s ease;
+}
+
+.role-card:hover {
+  border-color: var(--coffee-medium);
+  background: #fff;
+  transform: translateY(-10px);
+}
+
+.login-form-container {
+  width: 380px;
+  padding: 40px;
+  position: relative;
+}
+
+.back-btn {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: none;
+  border: none;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* Ensure the header container allows for wide spacing */
+.admin-container header, 
+.cashier-header {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Updated Logout Button with the extra margin you requested */
+.logout-btn {
+  margin-left: 100px; /* Pushes it further away from the text */
+  background: transparent;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  background: #dc3545;
+  color: white;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+}
+
+/* Improved Login/Role Card transitions */
+.role-card {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.role-card:active {
+  transform: scale(0.95);
+}
+.premium-input {
+  width: 100%;
+  padding: 12px 15px;
   border-radius: 8px;
   border: 1.5px solid #eee;
-  margin-bottom: 15px;
+  background: white; /* Ensure solid background */
+  color: #333 !important; /* Forces dark, visible text */
+  font-size: 14px;
   outline: none;
+  transition: border-color 0.3s;
 }
 
 .premium-input:focus {
   border-color: var(--coffee-medium);
 }
 
-/* --- 7. UTILITIES --- */
-.dark-text { color: #1a0f0a !important; font-weight: 800; }
-.red-text { color: var(--danger) !important; font-weight: bold; }
-.bold-text { font-weight: 700; }
+.cashier-container {
+  display: flex;
+  height: 100vh;
+  background: #fdfbf9;
+}
 
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.animate-spin { animation: spin 1s linear infinite; }
+.menu-section {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.product-card {
+  padding: 20px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  border: 1px solid var(--coffee-medium);
+}
+
+.cart-sidebar {
+  width: 350px;
+  background: white;
+  border-left: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -5px 0 15px rgba(0,0,0,0.02);
+}
+
+.cart-header {
+  padding: 25px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cart-items {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #eee;
+}
+
+.checkout-btn {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.1rem;
+}
+
+.product-card {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 180px;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(111, 78, 55, 0.1);
+  border-color: var(--coffee-light);
+}
+
+.cart-sidebar {
+  border: none !important;
+  box-shadow: -10px 0 30px rgba(0,0,0,0.05) !important;
+}
+
+.remove-item-btn:hover {
+  transform: scale(1.1);
+  color: #ff0000 !important;
+}
+
+/* Color Palette for Contrast */
+.dark-text {
+  color: #1a0f0a !important; /* Deep Dark Espresso */
+  font-weight: 800;
+}
+
+.text-black {
+  color: #000000 !important;
+  font-weight: 600;
+}
+
+.white-text {
+  color: #ffffff !important;
+}
+
+.bold-text {
+  font-weight: 700;
+}
+
+/* Category Tabs Styling */
+.category-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 25px;
+  overflow-x: auto;
+  padding: 5px;
+}
+
+.tab-btn {
+  padding: 10px 22px;
+  border-radius: 25px;
+  border: 1px solid #dcbfa6;
+  background: white;
+  color: #6f4e37;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.tab-btn.active {
+  background: #6f4e37;
+  color: white;
+  box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3);
+}
+
+.delete-icon {
+  color: #dc3545;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.delete-icon:hover {
+  transform: scale(1.2);
+}
+
+/* Core CRM Layout */
+.crm-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+.crm-sidebar {
+  width: 250px;
+  background: white;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100%;
+}
+
+.crm-main {
+  flex: 1;
+  margin-left: 250px; /* Offset for sidebar */
+  background-color: #f9f7f5;
+  padding: 30px;
+}
+
+/* Restructuring Main Content to match reference image */
+.dashboard-main-layout-crm {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* Product List on left, Reports on right */
+  gap: 30px;
+  margin-top: 30px;
+}
+
+/* Actions Column Styling */
+.actions-cell {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.action-btn:hover { transform: scale(1.1); }
+.action-btn.edit { color: #6f4e37; }
+.action-btn.delete { color: #dc3545; }
