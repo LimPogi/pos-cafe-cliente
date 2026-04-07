@@ -4,7 +4,7 @@ import './dashboard.css';
 import { 
   Plus, LogOut, Loader2, Trash2, Edit3, FileText, Package, 
   AlertTriangle, X, LayoutDashboard, ShoppingBag, 
-  BarChart3, Settings, Search, Bell 
+  BarChart3, Settings, Bell 
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -19,7 +19,6 @@ export default function AdminDashboard() {
     name: '', price: '', category: 'Coffee', stock_quantity: '' 
   });
 
-  // --- DATA FETCHING ---
   const fetchAllData = async () => {
     try {
       const [prodRes, statsRes, ordersRes] = await Promise.all([
@@ -39,11 +38,8 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchAllData();
-    const interval = setInterval(fetchAllData, 60000); // Refresh every minute
-    return () => clearInterval(interval);
   }, []);
 
-  // --- HANDLERS ---
   const handleOpenModal = (product = null) => {
     if (product) {
       setEditingProduct(product);
@@ -75,7 +71,8 @@ export default function AdminDashboard() {
         await api.post('/products', payload);
       }
       setShowProductModal(false);
-      fetchAllData();
+      // Immediate refresh of data to show new/updated product
+      await fetchAllData();
     } catch (err) {
       alert("Error saving product.");
     }
@@ -85,7 +82,7 @@ export default function AdminDashboard() {
     if (window.confirm("Delete this product? This cannot be undone.")) {
       try {
         await api.delete(`/products/${id}`);
-        fetchAllData(); 
+        await fetchAllData(); 
       } catch (err) { 
         alert("Failed to delete product."); 
       }
@@ -94,7 +91,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="loader-container" style={{display:'flex', justifyContent:'center', alignItems:'center', height:'100vh'}}>
+      <div className="loader-container">
           <Loader2 className="animate-spin" size={40} color="#6f4e37" />
       </div>
     );
@@ -102,7 +99,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="crm-wrapper">
-      {/* --- SIDEBAR NAVIGATION --- */}
       <aside className="crm-sidebar">
         <div className="sidebar-logo">
           <Package color="#6f4e37" size={30} />
@@ -119,7 +115,6 @@ export default function AdminDashboard() {
         </button>
       </aside>
 
-      {/* --- MAIN CONTENT AREA --- */}
       <main className="crm-main">
         <header className="crm-header">
           <div className="header-left">
@@ -127,17 +122,12 @@ export default function AdminDashboard() {
             <p className="sub-text">Overview of your activity</p>
           </div>
           <div className="header-right">
-            <div className="search-bar">
-              <Search size={18} color="#888" />
-              <input type="text" placeholder="Search products..." />
-            </div>
             <button onClick={() => handleOpenModal()} className="btn-primary-new">
               <Plus size={18}/> New Product
             </button>
           </div>
         </header>
 
-        {/* --- STATS SECTION --- */}
         <div className="crm-stats-grid">
           <div className="glass-card crm-stat-card highlight">
             <span className="stat-label">Today's Sales</span>
@@ -158,7 +148,6 @@ export default function AdminDashboard() {
         </div>
 
         <div className="dashboard-main-layout-crm">
-          {/* PRODUCT INVENTORY */}
           <div className="glass-card table-section-crm">
             <h3 className="dark-text">Product Catalog</h3>
             <table className="premium-table-crm">
@@ -168,16 +157,16 @@ export default function AdminDashboard() {
                   <th>Category</th>
                   <th>Price</th>
                   <th>Stock</th>
-                  <th style={{textAlign: 'right'}}>Action</th>
+                  <th style={{textAlign: 'right'}}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {products.map(p => (
                   <tr key={p.id}>
-                    <td className="bold-text text-black">{p.name}</td>
+                    <td className="bold-text dark-text">{p.name}</td>
                     <td><span className={`badge ${p.category?.toLowerCase() || 'default'}`}>{p.category}</span></td>
-                    <td>₱{Number(p.price).toFixed(2)}</td>
-                    <td style={{ color: p.stock_quantity < 10 ? '#dc3545' : 'inherit', fontWeight: 'bold' }}>
+                    <td className="dark-text">₱{Number(p.price).toFixed(2)}</td>
+                    <td style={{ color: p.stock_quantity < 10 ? '#dc3545' : '#3c2a21', fontWeight: 'bold' }}>
                       {p.stock_quantity}
                     </td>
                     <td className="actions-cell" style={{textAlign: 'right'}}>
@@ -190,89 +179,80 @@ export default function AdminDashboard() {
             </table>
           </div>
 
-          {/* REPORTS & ALERTS SIDEBAR */}
           <div className="crm-reports-sidebar">
             <div className="glass-card alert-card" style={{marginBottom: '20px'}}>
-              <h3 className="dark-text"><AlertTriangle size={18} style={{verticalAlign: 'middle', marginRight: '8px'}}/> Low Stock Alerts</h3>
-              {products.filter(p => p.stock_quantity < 10).length > 0 ? (
-                products.filter(p => p.stock_quantity < 10).map(p => (
-                  <div key={p.id} className="alert-item red-text">Low: {p.name} ({p.stock_quantity})</div>
-                ))
-              ) : (
-                <p style={{fontSize: '14px', color: '#888'}}>All stocks healthy.</p>
-              )}
+              <h3 className="dark-text"><AlertTriangle size={18} style={{marginRight: '8px'}}/> Low Stock Alerts</h3>
+              {products.filter(p => p.stock_quantity < 10).map(p => (
+                <div key={p.id} className="alert-item red-text">Low: {p.name} ({p.stock_quantity})</div>
+              ))}
             </div>
-            
-            <div className="glass-card report-card-crm">
-              <h3 className="dark-text"><FileText size={18} style={{verticalAlign: 'middle', marginRight: '8px'}}/> Sales Reports</h3>
-              <div className="report-buttons" style={{display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px'}}>
+            <div className="glass-card">
+              <h3 className="dark-text"><FileText size={18} style={{marginRight: '8px'}}/> Sales Reports</h3>
+              <div style={{display:'flex', flexDirection:'column', gap:'10px', marginTop:'15px'}}>
                 <button className="report-btn-crm">Generate Daily PDF</button>
                 <button className="report-btn-crm">Monthly Analytics</button>
               </div>
             </div>
           </div>
         </div>
-
-        {/* --- RECENT TRANSACTIONS --- */}
-        <div className="glass-card history-section" style={{ marginTop: '30px' }}>
-          <h3 className="dark-text">Recent Order Receipts</h3>
-          <table className="premium-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Order ID</th>
-                <th>Total Amount</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentOrders.length > 0 ? recentOrders.map(order => (
-                <tr key={order.id}>
-                  <td>{new Date(order.created_at).toLocaleDateString()} {new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
-                  <td>#{order.id.toString().slice(-8).toUpperCase()}</td>
-                  <td className="bold-text">₱{Number(order.total_price).toFixed(2)}</td>
-                  <td><button className="action-btn edit" title="View"><FileText size={16}/></button></td>
-                </tr>
-              )) : (
-                <tr><td colSpan="4" style={{textAlign: 'center', padding: '20px'}}>No orders recorded yet.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
       </main>
 
-      {/* --- ADD/EDIT MODAL --- */}
+      {/* --- POPUP MODAL (matches your screenshot) --- */}
       {showProductModal && (
         <div className="modal-overlay">
-          <div className="modal-content glass-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                <h3 className="dark-text">{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
-                <X size={20} style={{ cursor: 'pointer' }} onClick={() => setShowProductModal(false)} />
+          <div className="modal-container">
+            <div className="modal-card">
+              <h2 className="modal-title">{editingProduct ? 'Edit Menu Item' : 'New Menu Item'}</h2>
+              <form onSubmit={handleSaveProduct} className="modal-form">
+                <div className="input-group">
+                  <input 
+                    type="text" 
+                    placeholder="Name (e.g. Pesto)" 
+                    required 
+                    value={productForm.name} 
+                    onChange={e => setProductForm({...productForm, name: e.target.value})} 
+                  />
+                </div>
+                <div className="input-group">
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    placeholder="Price" 
+                    required 
+                    value={productForm.price} 
+                    onChange={e => setProductForm({...productForm, price: e.target.value})} 
+                  />
+                </div>
+                <div className="input-group">
+                  <select 
+                    value={productForm.category} 
+                    onChange={e => setProductForm({...productForm, category: e.target.value})}
+                  >
+                    <option value="Coffee">Coffee</option>
+                    <option value="Pasta">Pasta</option>
+                    <option value="Pastries">Pastries</option>
+                    <option value="Drinks">Drinks</option>
+                    <option value="Non-Coffee">Non-Coffee</option>
+                    <option value="Refresher">Refresher</option>
+                  </select>
+                </div>
+                <div className="input-group">
+                  <input 
+                    type="number" 
+                    placeholder="Stock" 
+                    required 
+                    value={productForm.stock_quantity} 
+                    onChange={e => setProductForm({...productForm, stock_quantity: e.target.value})} 
+                  />
+                </div>
+                <button type="submit" className="btn-modal-submit">
+                  {editingProduct ? 'Update Menu' : 'Add to Menu'}
+                </button>
+                <button type="button" className="btn-modal-cancel" onClick={() => setShowProductModal(false)}>
+                  Cancel
+                </button>
+              </form>
             </div>
-            <form onSubmit={handleSaveProduct} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <label className="stat-label">Product Name</label>
-              <input type="text" placeholder="Enter product name" required className="premium-input" value={productForm.name} onChange={e => setProductForm({...productForm, name: e.target.value})} />
-              
-              <label className="stat-label">Price (₱)</label>
-              <input type="number" step="0.01" placeholder="0.00" required className="premium-input" value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})} />
-              
-              <label className="stat-label">Category</label>
-              <select className="premium-input" value={productForm.category} onChange={e => setProductForm({...productForm, category: e.target.value})}>
-                <option value="Coffee">Coffee</option>
-                <option value="Pasta">Pasta</option>
-                <option value="Pastries">Pastries</option>
-                <option value="Drinks">Drinks</option>
-                <option value="Non-Coffee">Non-Coffee</option>
-                <option value="Refresher">Refresher</option>
-              </select>
-              
-              <label className="stat-label">Stock Quantity</label>
-              <input type="number" placeholder="Enter quantity" required className="premium-input" value={productForm.stock_quantity} onChange={e => setProductForm({...productForm, stock_quantity: e.target.value})} />
-              
-              <button type="submit" className="save-btn" style={{marginTop: '10px'}}>
-                {editingProduct ? 'Update Product' : 'Save Product'}
-              </button>
-            </form>
           </div>
         </div>
       )}
