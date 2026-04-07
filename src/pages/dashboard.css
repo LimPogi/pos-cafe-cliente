@@ -389,3 +389,59 @@ body {
   transform: scale(1.1);
   color: #ff0000 !important;
 }
+
+/* Color Palette for Contrast */
+.dark-text {
+  color: #1a0f0a !important; /* Deep Dark Espresso */
+  font-weight: 800;
+}
+
+.text-black {
+  color: #000000 !important;
+  font-weight: 600;
+}
+
+.white-text {
+  color: #ffffff !important;
+}
+
+.bold-text {
+  font-weight: 700;
+}
+
+/* Category Tabs Styling */
+.category-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 25px;
+  overflow-x: auto;
+  padding: 5px;
+}
+
+.tab-btn {
+  padding: 10px 22px;
+  border-radius: 25px;
+  border: 1px solid #dcbfa6;
+  background: white;
+  color: #6f4e37;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.tab-btn.active {
+  background: #6f4e37;
+  color: white;
+  box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3);
+}
+
+.delete-icon {
+  color: #dc3545;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.delete-icon:hover {
+  transform: scale(1.2);
+}
