@@ -3,7 +3,7 @@ import api from '../utils/api';
 import './dashboard.css'; 
 import { 
   Plus, LogOut, Loader2, Trash2, Edit3, FileText, Package, 
-  TrendingUp, AlertTriangle, X, LayoutDashboard, ShoppingBag, 
+  AlertTriangle, X, LayoutDashboard, ShoppingBag, 
   BarChart3, Settings, Search, Bell 
 } from 'lucide-react';
 
@@ -95,7 +95,7 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="loader-container" style={{display:'flex', justifyContent:'center', alignItems:'center', height:'100vh'}}>
-          <Loader2 className="animate-spin" size={40} />
+          <Loader2 className="animate-spin" size={40} color="#6f4e37" />
       </div>
     );
   }
@@ -109,13 +109,13 @@ export default function AdminDashboard() {
           <h2 className="brand-text">JCA<span>Cucina</span></h2>
         </div>
         <nav className="sidebar-nav">
-          <div className="nav-item active"><LayoutDashboard size={18}/> Tableau de bord</div>
-          <div className="nav-item"><ShoppingBag size={18}/> Catalogue</div>
-          <div className="nav-item"><BarChart3 size={18}/> Rapports</div>
-          <div className="nav-item"><Settings size={18}/> Paramètres</div>
+          <div className="nav-item active"><LayoutDashboard size={18}/> Dashboard</div>
+          <div className="nav-item"><ShoppingBag size={18}/> Catalog</div>
+          <div className="nav-item"><BarChart3 size={18}/> Reports</div>
+          <div className="nav-item"><Settings size={18}/> Settings</div>
         </nav>
         <button onClick={() => {localStorage.clear(); window.location.href="/"}} className="sidebar-logout">
-          <LogOut size={18}/> Deconnexion
+          <LogOut size={18}/> Logout
         </button>
       </aside>
 
@@ -123,17 +123,16 @@ export default function AdminDashboard() {
       <main className="crm-main">
         <header className="crm-header">
           <div className="header-left">
-            <h1 className="welcome-text">Bienvenue, Admin!</h1>
-            <p className="sub-text">Vue d'ensemble de votre activité</p>
+            <h1 className="welcome-text">Welcome, Admin!</h1>
+            <p className="sub-text">Overview of your activity</p>
           </div>
           <div className="header-right">
             <div className="search-bar">
-              <Search size={18} />
-              <input type="text" placeholder="Rechercher..." />
+              <Search size={18} color="#888" />
+              <input type="text" placeholder="Search products..." />
             </div>
-            <Bell size={20} className="header-icon" />
             <button onClick={() => handleOpenModal()} className="btn-primary-new">
-              <Plus size={18}/> Nouveau produit
+              <Plus size={18}/> New Product
             </button>
           </div>
         </header>
@@ -141,24 +140,33 @@ export default function AdminDashboard() {
         {/* --- STATS SECTION --- */}
         <div className="crm-stats-grid">
           <div className="glass-card crm-stat-card highlight">
-            <span className="stat-label">Ventes d'aujourd'hui</span>
-            <h2 className="stat-value">₱{Number(stats.daily || 0).toFixed(2)}</h2>
+            <span className="stat-label">Today's Sales</span>
+            <h2 className="stat-value">₱{Number(stats.daily || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</h2>
           </div>
-          <div className="glass-card crm-stat-card"><span className="stat-label">Hebdomadaire</span><h2 className="stat-value">₱{Number(stats.weekly || 0).toFixed(2)}</h2></div>
-          <div className="glass-card crm-stat-card"><span className="stat-label">Mensuel</span><h2 className="stat-value">₱{Number(stats.monthly || 0).toFixed(2)}</h2></div>
-          <div className="glass-card crm-stat-card"><span className="stat-label">Commandes</span><h2 className="stat-value">{stats.totalOrders || 0}</h2></div>
+          <div className="glass-card crm-stat-card">
+            <span className="stat-label">Weekly Sales</span>
+            <h2 className="stat-value">₱{Number(stats.weekly || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</h2>
+          </div>
+          <div className="glass-card crm-stat-card">
+            <span className="stat-label">Monthly Sales</span>
+            <h2 className="stat-value">₱{Number(stats.monthly || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</h2>
+          </div>
+          <div className="glass-card crm-stat-card">
+            <span className="stat-label">Total Orders</span>
+            <h2 className="stat-value">{stats.totalOrders || 0}</h2>
+          </div>
         </div>
 
         <div className="dashboard-main-layout-crm">
           {/* PRODUCT INVENTORY */}
           <div className="glass-card table-section-crm">
-            <h3 className="dark-text">Catalogue de Produits</h3>
+            <h3 className="dark-text">Product Catalog</h3>
             <table className="premium-table-crm">
               <thead>
                 <tr>
-                  <th>Nom</th>
-                  <th>Catégorie</th>
-                  <th>Prix</th>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Price</th>
                   <th>Stock</th>
                   <th style={{textAlign: 'right'}}>Action</th>
                 </tr>
@@ -167,12 +175,12 @@ export default function AdminDashboard() {
                 {products.map(p => (
                   <tr key={p.id}>
                     <td className="bold-text text-black">{p.name}</td>
-                    <td><span className={`badge ${p.category.toLowerCase()}`}>{p.category}</span></td>
+                    <td><span className={`badge ${p.category?.toLowerCase() || 'default'}`}>{p.category}</span></td>
                     <td>₱{Number(p.price).toFixed(2)}</td>
                     <td style={{ color: p.stock_quantity < 10 ? '#dc3545' : 'inherit', fontWeight: 'bold' }}>
                       {p.stock_quantity}
                     </td>
-                    <td className="actions-cell">
+                    <td className="actions-cell" style={{textAlign: 'right'}}>
                       <button className="action-btn edit" onClick={() => handleOpenModal(p)}><Edit3 size={16}/></button>
                       <button className="action-btn delete" onClick={() => handleDeleteProduct(p.id)}><Trash2 size={16}/></button>
                     </td>
@@ -184,15 +192,20 @@ export default function AdminDashboard() {
 
           {/* REPORTS & ALERTS SIDEBAR */}
           <div className="crm-reports-sidebar">
-            <div className="glass-card alert-card">
-              <h3 className="dark-text"><AlertTriangle size={18}/> Low Stock alerts</h3>
-              {products.filter(p => p.stock_quantity < 10).map(p => (
-                <div key={p.id} className="alert-item red-text">Low: {p.name} ({p.stock_quantity})</div>
-              ))}
+            <div className="glass-card alert-card" style={{marginBottom: '20px'}}>
+              <h3 className="dark-text"><AlertTriangle size={18} style={{verticalAlign: 'middle', marginRight: '8px'}}/> Low Stock Alerts</h3>
+              {products.filter(p => p.stock_quantity < 10).length > 0 ? (
+                products.filter(p => p.stock_quantity < 10).map(p => (
+                  <div key={p.id} className="alert-item red-text">Low: {p.name} ({p.stock_quantity})</div>
+                ))
+              ) : (
+                <p style={{fontSize: '14px', color: '#888'}}>All stocks healthy.</p>
+              )}
             </div>
+            
             <div className="glass-card report-card-crm">
-              <h3 className="dark-text"><FileText size={18}/> Sales Reports</h3>
-              <div className="report-buttons">
+              <h3 className="dark-text"><FileText size={18} style={{verticalAlign: 'middle', marginRight: '8px'}}/> Sales Reports</h3>
+              <div className="report-buttons" style={{display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px'}}>
                 <button className="report-btn-crm">Generate Daily PDF</button>
                 <button className="report-btn-crm">Monthly Analytics</button>
               </div>
@@ -215,12 +228,14 @@ export default function AdminDashboard() {
             <tbody>
               {recentOrders.length > 0 ? recentOrders.map(order => (
                 <tr key={order.id}>
-                  <td>{new Date(order.created_at).toLocaleString()}</td>
-                  <td>#{order.id.toString().slice(0,8)}</td>
+                  <td>{new Date(order.created_at).toLocaleDateString()} {new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                  <td>#{order.id.toString().slice(-8).toUpperCase()}</td>
                   <td className="bold-text">₱{Number(order.total_price).toFixed(2)}</td>
-                  <td><button className="view-btn">View Receipt</button></td>
+                  <td><button className="action-btn edit" title="View"><FileText size={16}/></button></td>
                 </tr>
-              )) : <tr><td colSpan="4" style={{textAlign: 'center', padding: '20px'}}>No orders recorded yet.</td></tr>}
+              )) : (
+                <tr><td colSpan="4" style={{textAlign: 'center', padding: '20px'}}>No orders recorded yet.</td></tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -231,12 +246,17 @@ export default function AdminDashboard() {
         <div className="modal-overlay">
           <div className="modal-content glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                <h3 className="dark-text">{editingProduct ? 'Modifier le produit' : 'Add New Product'}</h3>
+                <h3 className="dark-text">{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
                 <X size={20} style={{ cursor: 'pointer' }} onClick={() => setShowProductModal(false)} />
             </div>
             <form onSubmit={handleSaveProduct} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <input type="text" placeholder="Product Name" required className="premium-input" value={productForm.name} onChange={e => setProductForm({...productForm, name: e.target.value})} />
-              <input type="number" step="0.01" placeholder="Price" required className="premium-input" value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})} />
+              <label className="stat-label">Product Name</label>
+              <input type="text" placeholder="Enter product name" required className="premium-input" value={productForm.name} onChange={e => setProductForm({...productForm, name: e.target.value})} />
+              
+              <label className="stat-label">Price (₱)</label>
+              <input type="number" step="0.01" placeholder="0.00" required className="premium-input" value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})} />
+              
+              <label className="stat-label">Category</label>
               <select className="premium-input" value={productForm.category} onChange={e => setProductForm({...productForm, category: e.target.value})}>
                 <option value="Coffee">Coffee</option>
                 <option value="Pasta">Pasta</option>
@@ -245,8 +265,11 @@ export default function AdminDashboard() {
                 <option value="Non-Coffee">Non-Coffee</option>
                 <option value="Refresher">Refresher</option>
               </select>
-              <input type="number" placeholder="Stock Quantity" required className="premium-input" value={productForm.stock_quantity} onChange={e => setProductForm({...productForm, stock_quantity: e.target.value})} />
-              <button type="submit" className="save-btn">
+              
+              <label className="stat-label">Stock Quantity</label>
+              <input type="number" placeholder="Enter quantity" required className="premium-input" value={productForm.stock_quantity} onChange={e => setProductForm({...productForm, stock_quantity: e.target.value})} />
+              
+              <button type="submit" className="save-btn" style={{marginTop: '10px'}}>
                 {editingProduct ? 'Update Product' : 'Save Product'}
               </button>
             </form>
