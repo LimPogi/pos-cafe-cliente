@@ -1,103 +1,163 @@
 import React, { useEffect, useState } from 'react';
 import api from '../utils/api';
 import './dashboard.css'; 
-import { Coffee, Plus, LogOut, X, Loader2, Users } from 'lucide-react';
+import { Coffee, Plus, LogOut, X, Loader2, Edit3, Trash2 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
-  const [stats, setStats] = useState({ totalRevenue: 0, totalOrders: 0 });
+  const [recentOrders, setRecentOrders] = useState([]); // Added state for orders
+  const [stats, setStats] = useState({ 
+    totalRevenue: 0, 
+    totalOrders: 0, 
+    dailySales: 0, 
+    monthlySales: 0 
+  });
   const [loading, setLoading] = useState(true);
   const [showProductModal, setShowProductModal] = useState(false);
   const [productForm, setProductForm] = useState({ name: '', price: '', category: 'Coffee', stock_quantity: '' });
 
-  useEffect(() => { fetchInitialData(); }, []);
-  
+  // 1. Single Load function for everything
   const fetchInitialData = async () => {
     setLoading(true);
     try {
-      await Promise.all([fetchProducts(), fetchStats()]);
+      // Fetches products, stats, and order history all at once
+      const [prodRes, statsRes, ordersRes] = await Promise.all([
+        api.get('/products'),
+        api.get('/stats/detailed-summary'), // Updated to your new route
+        api.get('/orders/history') // You will need to add this route to backend
+      ]);
+      
+      setProducts(prodRes.data || []);
+      setStats(statsRes.data || { totalRevenue: 0, totalOrders: 0, dailySales: 0, monthlySales: 0 });
+      setRecentOrders(ordersRes.data || []);
+    } catch (err) {
+      console.error("Fetch Error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchProducts = async () => {
-    const res = await api.get('/products');
-    setProducts(res.data || []);
-  };
+  useEffect(() => { fetchInitialData(); }, []);
 
-  const fetchStats = async () => {
-    const res = await api.get('/dashboard/stats');
-    setStats(res.data || { totalRevenue: 0, totalOrders: 0 });
+  // 2. Add/Delete Handlers
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this item?")) return;
+    try {
+      await api.delete(`/products/${id}`);
+      fetchInitialData(); // Refresh list
+    } catch (err) {
+      alert("Error deleting product.");
+    }
   };
 
   const handleAddProduct = async (e) => {
     e.preventDefault();
-    
-    // Convert strings to proper Numbers for the DB
     const priceNum = parseFloat(productForm.price);
     const stockNum = parseInt(productForm.stock_quantity, 10);
 
-    if (isNaN(priceNum) || isNaN(stockNum)) return alert("Please enter valid numbers");
-
     try {
       await api.post('/products', {
-        name: productForm.name,
+        ...productForm,
         price: priceNum,
-        category: productForm.category || 'General',
         stock_quantity: stockNum
       });
-      
       setShowProductModal(false);
       setProductForm({ name: '', price: '', category: 'Coffee', stock_quantity: '' });
       fetchInitialData();
-      alert("Success: Menu item added! ✅");
     } catch (err) {
-      console.error(err);
-      alert("Error adding product. Ensure Supabase has INSERT policies enabled.");
+      alert("Error adding product.");
     }
   };
 
   return (
     <div className="admin-container">
       <header style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
-        <h1>Admin Dashboard</h1>
+        <h1>JCA CUCINA DASHBOARD</h1>
         <button onClick={() => {localStorage.clear(); window.location.href="/"}} className="logout-btn"><LogOut size={18}/> Logout</button>
       </header>
 
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
+      {/* --- OWNER ANALYTICS SECTION --- */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
+        <div className="glass-card stat-card">
+          <p>Today's Sales</p>
+          <h2>${stats.dailySales}</h2>
+        </div>
+        <div className="glass-card stat-card">
+          <p>This Month</p>
+          <h2>${stats.monthlySales}</h2>
+        </div>
         <div className="glass-card stat-card">
           <p>Total Revenue</p>
-          <h2>${Number(stats?.totalRevenue || 0).toFixed(2)}</h2>
+          <h2>${stats.totalRevenue}</h2>
         </div>
         <div className="glass-card stat-card">
           <p>Total Orders</p>
-          <h2>{stats?.totalOrders || 0}</h2>
+          <h2>{stats.totalOrders}</h2>
         </div>
       </div>
 
-      <button onClick={() => setShowProductModal(true)} className="add-btn"><Plus size={18}/> Add Menu Item</button>
+      {/* --- MENU MANAGEMENT SECTION --- */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <h3>JCA Menu Items</h3>
+        <button onClick={() => setShowProductModal(true)} className="add-btn" style={{marginBottom: 0}}><Plus size={18}/> Add New Item</button>
+      </div>
 
-      {loading ? <Loader2 className="animate-spin" /> : (
-        <div className="table-container glass-card">
-          <table className="premium-table">
-            <thead>
-              <tr><th>Name</th><th>Category</th><th>Price</th><th>Stock</th></tr>
-            </thead>
-            <tbody>
-              {products.map(p => (
-                <tr key={p.id}>
-                  <td>{p.name}</td>
-                  <td><span className="category-tag">{p.category}</span></td>
-                  <td>${Number(p.price).toFixed(2)}</td>
-                  <td>{p.stock_quantity}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <div className="table-container glass-card">
+        <table className="premium-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Actions</th> {/* Added Actions Header */}
+            </tr>
+          </thead>
+          <tbody>
+            {products.map(p => (
+              <tr key={p.id}>
+                <td>{p.name}</td>
+                <td><span className="category-tag">{p.category}</span></td>
+                <td>${Number(p.price).toFixed(2)}</td>
+                <td>{p.stock_quantity}</td>
+                <td>
+                  <div style={{ display: 'flex', gap: '15px' }}>
+                    <Edit3 size={18} style={{ cursor: 'pointer', color: '#6f4e37' }} onClick={() => alert('Edit logic coming next!')} />
+                    <Trash2 size={18} style={{ cursor: 'pointer', color: '#dc3545' }} onClick={() => handleDelete(p.id)} />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
+      {/* --- ORDER HISTORY / RECEIPTS SECTION --- */}
+      <div className="table-container glass-card" style={{ marginTop: '40px' }}>
+        <h3>Recent Order Receipts</h3>
+        <table className="premium-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Order ID</th>
+              <th>Total Amount</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recentOrders.length > 0 ? recentOrders.map(order => (
+              <tr key={order.id}>
+                <td>{new Date(order.created_at).toLocaleString()}</td>
+                <td>#{order.id.slice(0,8)}</td>
+                <td>${Number(order.total_price).toFixed(2)}</td>
+                <td><button className="category-tag" style={{border:'none', cursor:'pointer', background: '#eee'}}>View Receipt</button></td>
+              </tr>
+            )) : <tr><td colSpan="4" style={{textAlign: 'center'}}>No orders yet.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Add Modal remains the same */}
       {showProductModal && (
         <div className="modal-overlay">
           <div className="modal-content glass-card">
@@ -107,8 +167,8 @@ export default function AdminDashboard() {
               <input type="number" step="0.01" placeholder="Price" required className="premium-input" onChange={e => setProductForm({...productForm, price: e.target.value})} />
               <input type="text" placeholder="Category" className="premium-input" onChange={e => setProductForm({...productForm, category: e.target.value})} />
               <input type="number" placeholder="Stock" required className="premium-input" onChange={e => setProductForm({...productForm, stock_quantity: e.target.value})} />
-              <button type="submit" className="save-btn">Save</button>
-              <button type="button" onClick={() => setShowProductModal(false)} className="logout-btn">Cancel</button>
+              <button type="submit" className="save-btn">Save Item</button>
+              <button type="button" onClick={() => setShowProductModal(false)} className="logout-btn" style={{border: 'none'}}>Cancel</button>
             </form>
           </div>
         </div>
