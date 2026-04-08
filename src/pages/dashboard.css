@@ -99,7 +99,7 @@ body {
 .brand-text {
   font-size: 22px;
   font-weight: 800;
-  color: var(--coffee-dark);
+  color: var(--coffee-dark) !important;
 }
 
 .brand-text span { color: var(--coffee-medium); }
@@ -110,8 +110,8 @@ body {
   gap: 12px;
   padding: 14px 18px;
   border-radius: 10px;
-  color: #666;
-  font-weight: 500;
+  color: #3c2a21 !important;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   margin-bottom: 5px;
@@ -119,7 +119,7 @@ body {
 
 .nav-item:hover, .nav-item.active {
   background: #f5f0ec;
-  color: var(--coffee-medium);
+  color: var(--coffee-medium) !important;
 }
 
 .sidebar-logout {
@@ -165,116 +165,49 @@ body {
 }
 
 /* --- TABLES --- */
-.premium-table {
+.premium-table, .premium-table-crm {
   width: 100%;
   border-collapse: collapse;
 }
 
-.premium-table th {
+.premium-table th, .premium-table-crm th {
   text-align: left;
   padding: 15px;
-  color: #999;
+  color: #3c2a21;
   font-size: 12px;
   text-transform: uppercase;
   border-bottom: 1px solid #eee;
+  font-weight: 700;
 }
 
-.premium-table td {
+.premium-table td, .premium-table-crm td {
   padding: 15px;
   border-bottom: 1px solid #f8f8f8;
-}
-
-/* --- FORMS & INPUTS --- */
-.premium-input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  background: #fafafa;
-  margin-bottom: 15px;
-}
-
-.premium-input:focus {
-  border-color: var(--coffee-medium);
-  outline: none;
-  background: white;
-}
-
-/* --- CASHIER & CART --- */
-.cashier-container {
-  display: flex;
-  height: 100vh;
-  margin-left: 260px; /* Aligns with Sidebar */
-}
-
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 20px;
-  padding: 20px;
-}
-
-.cart-sidebar {
-  width: 380px;
-  background: white;
-  border-left: 1px solid #eee;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-}
-
-.cart-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px dashed #eee;
-}
-
-/* --- BUTTONS --- */
-.btn-primary-new, .save-btn {
-  background: var(--coffee-medium);
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.3s;
-}
-
-.btn-primary-new:hover { background: var(--coffee-dark); }
-
-.action-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
+  color: #3c2a21 !important;
 }
 
 /* --- VISIBILITY FIXES --- */
 .dark-text, 
 .welcome-text, 
 .stat-label, 
-.stat-value, 
-.premium-table-crm td, 
-.premium-table-crm th,
-.nav-item {
-  color: #3c2a21 ! stroke; /* Force visibility for coffee-dark theme */
+.stat-value {
+  color: #3c2a21 !important;
+  opacity: 1 !important;
 }
 
 .sub-text {
   color: #6f4e37 !important;
 }
 
-/* --- MODAL POPUP DESIGN (Matches Screenshot) --- */
+/* --- MODAL POPUP DESIGN --- */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -308,8 +241,8 @@ body {
   gap: 15px;
 }
 
-.modal-form .input-group input,
-.modal-form .input-group select {
+.input-group input,
+.input-group select {
   width: 100%;
   padding: 15px;
   border: 1px solid #eee;
@@ -319,16 +252,27 @@ body {
   color: #3c2a21;
 }
 
-.btn-modal-submit {
-  background: #6f4e37;
-  color: white;
-  padding: 18px;
-  border-radius: 12px;
+/* --- BUTTONS --- */
+.btn-primary-new, .save-btn, .btn-modal-submit {
+  background: var(--coffee-medium);
+  color: white !important;
   border: none;
-  font-weight: 700;
-  font-size: 18px;
+  padding: 12px 20px;
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-modal-submit {
+  padding: 18px;
+  font-size: 18px;
   margin-top: 10px;
+}
+
+.btn-primary-new:hover, .btn-modal-submit:hover { 
+  background: var(--coffee-dark); 
+  transform: translateY(-2px);
 }
 
 .btn-modal-cancel {
@@ -339,6 +283,7 @@ body {
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
+  margin-top: 5px;
 }
 
 /* --- ACTIONS TABLE STYLING --- */
@@ -349,26 +294,38 @@ body {
 }
 
 .action-btn {
-  padding: 8px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
   border: none;
   cursor: pointer;
   transition: transform 0.2s;
-}
-
-.action-btn.edit { background: #fdf5ed; color: #6f4e37; }
-.action-btn.delete { background: #fff5f5; color: #dc3545; }
-
-.action-btn:hover {
-  transform: scale(1.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .action-btn.edit { background: #fdf5ed; color: var(--coffee-medium); }
 .action-btn.delete { background: #fff5f5; color: var(--danger); }
 
+.action-btn:hover {
+  transform: scale(1.1);
+}
+
 /* --- HELPERS --- */
 .badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
 .badge.coffee { background: #fdf5ed; color: var(--coffee-medium); }
-.alert-item { background: #fff5f5; color: var(--danger); padding: 10px; border-radius: 8px; margin-top: 10px; }
+.alert-item { background: #fff5f5; color: var(--danger); padding: 10px; border-radius: 8px; margin-top: 10px; font-weight: 600; }
+.report-btn-crm {
+  width: 100%;
+  padding: 12px;
+  background: #666;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
 .animate-spin { animation: spin 1s linear infinite; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
