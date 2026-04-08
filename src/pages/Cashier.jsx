@@ -1,7 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
-import { ShoppingCart, Trash2, Loader2, LogOut, Search, RefreshCw } from 'lucide-react';
-import './dashboard.css'; 
+import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
+import api from '../utils/api';
+import { 
+  ShoppingCart, 
+  Trash2, 
+  Loader2, 
+  LogOut, 
+  Search, 
+  RefreshCw, 
+  Package 
+} from 'lucide-react'; // Added RefreshCw and Package
+import './dashboard.css';
 
 export default function Cashier() {
   const [products, setProducts] = useState([]);
