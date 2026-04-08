@@ -19,20 +19,26 @@ export default function AdminDashboard() {
   });
 
   // --- DATA FETCHING ---
-  const fetchAllData = async () => {
+const fetchAllData = async () => {
+  try {
+    setLoading(true);
+    // Fetch products first
+    const prodRes = await api.get('/products');
+    setProducts(prodRes.data || []);
+
+    // Try to fetch stats, but don't crash if it's not ready
     try {
-      const [prodRes, statsRes] = await Promise.all([
-        api.get('/products'),
-        api.get('/stats/detailed-summary')
-      ]);
-      setProducts(prodRes.data || []);
-      setStats(statsRes.data || { totalRevenue: 0, totalOrders: 0, daily: 0, weekly: 0, monthly: 0 });
-    } catch (err) { 
-      console.error("Fetch Error:", err); 
-    } finally { 
-      setLoading(false); 
+      const statsRes = await api.get('/stats/detailed-summary');
+      setStats(statsRes.data || { daily: 0, weekly: 0, monthly: 0, totalOrders: 0 });
+    } catch (sErr) {
+      console.warn("Stats route not ready yet");
     }
-  };
+  } catch (err) {
+    console.error("Fetch Error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchAllData();
@@ -66,14 +72,14 @@ export default function AdminDashboard() {
       stock_quantity: parseInt(productForm.stock_quantity, 10)
     };
 
-    try {
-      if (editingProduct) {
-        // Update existing product
-        await api.put(`/products/${editingProduct.id}`, payload);
-      } else {
-        // Create new product
-        await api.post('/products', payload);
-      }
+   try {
+    if (editingProduct) {
+      // Add a leading slash or ensure it matches your API instance
+      await api.put(`/products/${editingProduct.id}`, payload);
+    } else {
+      // Try adding the slash explicitly if your server is being picky
+      await api.post('/products', payload); 
+    }
       
       setShowProductModal(false);
       // RE-FETCH DATA: This ensures both the Admin and Cashier side see the update
