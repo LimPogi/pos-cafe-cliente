@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
-import { ShoppingCart, Trash2, Loader2, LogOut, Search } from 'lucide-react';
+import { ShoppingCart, Trash2, Loader2, LogOut, Search, RefreshCw } from 'lucide-react';
 import './dashboard.css'; 
 
 export default function Cashier() {
@@ -13,22 +13,37 @@ export default function Cashier() {
 
   const categories = ["All", "Coffee", "Pasta", "Pastries", "Drinks", "Non-Coffee", "Refresher"];
 
-  useEffect(() => { 
-    fetchProducts(); 
-  }, []);
-
-  const fetchProducts = async () => {
+  // --- SYNC LOGIC ---
+  const fetchProducts = useCallback(async (showLoader = true) => {
     try {
-      setLoading(true);
+      if (showLoader) setLoading(true);
       const res = await api.get('/products');
       setProducts(Array.isArray(res.data) ? res.data : []);
     } catch (err) { 
-      console.error(err); 
+      console.error("Sync Error:", err); 
     } finally { 
       setLoading(false); 
     }
-  };
+  }, []);
 
+  useEffect(() => { 
+    // 1. Initial Fetch
+    fetchProducts(); 
+
+    // 2. AUTO-SYNC: Refresh menu when cashier switches back to this tab
+    const handleFocus = () => fetchProducts(false); // refresh without showing full loader
+    window.addEventListener('focus', handleFocus);
+
+    // 3. BACKGROUND POLL: Refresh every 30 seconds
+    const interval = setInterval(() => fetchProducts(false), 30000);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(interval);
+    };
+  }, [fetchProducts]);
+
+  // --- CART LOGIC ---
   const addToCart = (product) => {
     if (product.stock_quantity <= 0) return;
     setCart(prev => {
@@ -67,7 +82,7 @@ export default function Cashier() {
 
       alert("Order Successful! 🧾");
       setCart([]);
-      fetchProducts(); // Refresh stock after purchase
+      fetchProducts(false); // Refresh stock immediately after purchase
     } catch (err) {
       console.error(err);
       alert("Checkout failed. Please try again.");
@@ -78,33 +93,42 @@ export default function Cashier() {
 
   return (
     <div className="cashier-layout" style={{ display: 'flex', height: '100vh', backgroundColor: '#f9f7f5' }}>
+      
       {/* --- MENU SECTION --- */}
       <div style={{ flex: 3, padding: '30px', overflowY: 'auto' }}>
         <header style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <h1 className="dark-text">JCA Cucina Menu</h1>
+          <div>
+            <h1 className="dark-text">JCA Cucina Menu</h1>
+            <p className="sub-text">Cashier Terminal</p>
+          </div>
+          
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button onClick={() => fetchProducts()} className="action-btn edit" title="Manual Sync">
+               <RefreshCw size={18} className={loading ? "animate-spin" : ""}/>
+            </button>
             <div style={{ position: 'relative' }}>
               <Search size={18} style={{ position: 'absolute', left: '10px', top: '12px', color: '#888' }}/>
               <input 
                 type="text" 
                 placeholder="Search products..." 
                 className="premium-input" 
-                style={{ paddingLeft: '35px' }} 
+                style={{ paddingLeft: '35px', marginBottom: 0 }} 
                 onChange={(e) => setSearchTerm(e.target.value)} 
               />
             </div>
-            <button onClick={() => {localStorage.clear(); window.location.href="/"}} className="logout-btn">
+            <button onClick={() => {localStorage.clear(); window.location.href="/"}} className="sidebar-logout" style={{marginTop: 0, padding: '10px 15px'}}>
               <LogOut size={18}/>
             </button>
           </div>
         </header>
 
-        {/* --- ASSORTED CATEGORY TABS --- */}
+        {/* --- CATEGORY TABS --- */}
         <div className="category-tabs" style={{ display: 'flex', gap: '10px', marginBottom: '25px', overflowX: 'auto', paddingBottom: '10px' }}>
           {categories.map(cat => (
             <button 
               key={cat} 
-              className={`tab-btn ${activeCategory === cat ? 'active' : ''}`} 
+              className={`nav-item ${activeCategory === cat ? 'active' : ''}`} 
+              style={{ border: '1px solid #eee', whiteSpace: 'nowrap' }}
               onClick={() => setActiveCategory(cat)}
             >
               {cat}
@@ -112,8 +136,10 @@ export default function Cashier() {
           ))}
         </div>
 
-        {loading ? (
-          <div style={{ textAlign: 'center', marginTop: '50px' }}><Loader2 className="animate-spin" size={40} /></div>
+        {loading && products.length === 0 ? (
+          <div style={{ textAlign: 'center', marginTop: '50px' }}>
+            <Loader2 className="animate-spin" size={40} color="#6f4e37" />
+          </div>
         ) : (
           <div className="product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
             {products
@@ -124,13 +150,17 @@ export default function Cashier() {
                   key={p.id} 
                   className="glass-card product-card" 
                   onClick={() => addToCart(p)} 
-                  style={{ opacity: p.stock_quantity <= 0 ? 0.5 : 1, cursor: p.stock_quantity <= 0 ? 'not-allowed' : 'pointer' }}
+                  style={{ 
+                    opacity: p.stock_quantity <= 0 ? 0.5 : 1, 
+                    cursor: p.stock_quantity <= 0 ? 'not-allowed' : 'pointer',
+                    transition: 'transform 0.2s'
+                  }}
                 >
-                  <span className="category-badge" style={{ fontSize: '12px' }}>{p.category}</span>
-                  <h3 className="text-black" style={{ margin: '10px 0 5px 0' }}>{p.name}</h3>
-                  <p className="price-text" style={{ fontWeight: 'bold', color: '#6f4e37' }}>₱{Number(p.price).toFixed(2)}</p>
-                  <small className="text-black">Stock: {p.stock_quantity}</small>
-                  {p.stock_quantity <= 0 && <div style={{color: 'red', fontWeight: 'bold', fontSize: '12px'}}>Sold Out</div>}
+                  <span className="badge coffee" style={{ fontSize: '10px' }}>{p.category}</span>
+                  <h3 className="dark-text" style={{ margin: '10px 0 5px 0', fontSize: '1.1rem' }}>{p.name}</h3>
+                  <p className="stat-value" style={{ fontSize: '1.2rem', color: '#6f4e37' }}>₱{Number(p.price).toFixed(2)}</p>
+                  <small className="sub-text">Stock: {p.stock_quantity}</small>
+                  {p.stock_quantity <= 0 && <div className="alert-item" style={{marginTop: '5px', padding: '5px', textAlign: 'center'}}>Sold Out</div>}
                 </div>
               ))}
           </div>
@@ -138,25 +168,28 @@ export default function Cashier() {
       </div>
 
       {/* --- CART SIDEBAR --- */}
-      <div className="glass-card cart-sidebar" style={{ width: '400px', margin: '20px', padding: '0', display: 'flex', flexDirection: 'column', backgroundColor: 'white' }}>
-        <div style={{ padding: '20px', borderBottom: '1px solid #eee' }}>
-            <h2 className="dark-text" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><ShoppingCart /> Cart</h2>
+      <div className="glass-card cart-sidebar" style={{ width: '400px', margin: '20px', padding: '0', display: 'flex', flexDirection: 'column', border: '1px solid #eee' }}>
+        <div style={{ padding: '20px', borderBottom: '1px solid #eee', background: '#fdf5ed' }}>
+            <h2 className="dark-text" style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}><ShoppingCart /> Current Order</h2>
         </div>
         
         <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
             {cart.length === 0 ? (
-              <p style={{ textAlign: 'center', color: '#999', marginTop: '20px' }}>Your cart is empty</p>
+              <div style={{ textAlign: 'center', color: '#999', marginTop: '40px' }}>
+                <Package size={40} style={{ opacity: 0.2, marginBottom: '10px' }} />
+                <p>Cart is empty</p>
+              </div>
             ) : (
               cart.map(item => (
                 <div key={item.id} className="cart-item-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', paddingBottom: '10px', borderBottom: '1px solid #f5f5f5' }}>
                     <div style={{ flex: 1 }}>
-                        <div className="text-black" style={{ fontWeight: '600' }}>{item.name}</div>
-                        <div style={{ fontSize: '13px', color: '#888' }}>{item.quantity} x ₱{Number(item.price).toFixed(2)}</div>
+                        <div className="dark-text" style={{ fontWeight: '700' }}>{item.name}</div>
+                        <div className="sub-text" style={{ fontSize: '13px' }}>{item.quantity} x ₱{Number(item.price).toFixed(2)}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                        <span className="text-black" style={{ fontWeight: 'bold' }}>₱{(item.price * item.quantity).toFixed(2)}</span>
-                        <button onClick={() => removeFromCart(item.id)} style={{ color: '#ff4d4d', background: 'none', border: 'none', cursor: 'pointer' }}>
-                            <Trash2 size={18} />
+                        <span className="dark-text" style={{ fontWeight: 'bold' }}>₱{(item.price * item.quantity).toFixed(2)}</span>
+                        <button onClick={() => removeFromCart(item.id)} className="action-btn delete">
+                            <Trash2 size={16} />
                         </button>
                     </div>
                 </div>
@@ -165,18 +198,18 @@ export default function Cashier() {
         </div>
 
         {/* --- CHECKOUT FOOTER --- */}
-        <div style={{ padding: '20px', backgroundColor: '#fffaf5', borderTop: '1px solid #eee' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-            <span className="dark-text" style={{ fontSize: '18px', fontWeight: 'bold' }}>Total:</span>
-            <span className="dark-text" style={{ fontSize: '22px', fontWeight: 'bold' }}>₱{calculateTotal()}</span>
+        <div style={{ padding: '25px', backgroundColor: '#fffaf5', borderTop: '1px solid #eee', borderRadius: '0 0 15px 15px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <span className="sub-text" style={{ fontSize: '16px', fontWeight: 'bold' }}>Total Amount</span>
+            <span className="stat-value" style={{ fontSize: '24px', fontWeight: '800' }}>₱{calculateTotal()}</span>
           </div>
           <button 
             onClick={handleCheckout} 
-            className="save-btn" 
-            style={{ width: '100%', padding: '15px', fontSize: '16px' }} 
+            className="btn-modal-submit" 
+            style={{ width: '100%', margin: 0 }} 
             disabled={processing || cart.length === 0}
           >
-            {processing ? <Loader2 className="animate-spin" /> : "Complete Order"}
+            {processing ? <Loader2 className="animate-spin" size={20} /> : "Complete Transaction"}
           </button>
         </div>
       </div>
