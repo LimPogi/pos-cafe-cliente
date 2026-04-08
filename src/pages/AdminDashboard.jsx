@@ -84,16 +84,23 @@ const handleSaveProduct = async (e) => {
         alert("Error: " + (err.response?.data?.error || "Check console"));
     }
 };
-  const handleDeleteProduct = async (id) => {
-    if (window.confirm("Delete this product? This cannot be undone.")) {
-      try {
-        await api.delete(`/products/${id}`);
-        await fetchAllData(); 
-      } catch (err) { 
-        alert("Failed to delete product."); 
-      }
+  const handleDelete = async (id) => {
+  if (window.confirm("Delete this product? This cannot be undone.")) {
+    try {
+      // 1. Send the delete request
+      await api.delete(`/products/${id}`);
+
+      // 2. IMMEDIATE UI UPDATE: Remove it from the list without a page reload
+      setProducts(prevProducts => prevProducts.filter(product => product.id !== id));
+      
+      // 3. Optional: Background sync to ensure data integrity
+      // await fetchAllData(); 
+    } catch (err) {
+        console.error("Delete Error:", err.response?.data || err.message);
+        alert("Failed to delete. Check console for details.");
     }
-  };
+  }
+};
 
   if (loading) {
     return (
