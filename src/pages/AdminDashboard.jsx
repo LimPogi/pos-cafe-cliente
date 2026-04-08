@@ -62,35 +62,28 @@ const fetchAllData = async () => {
   };
 
   // --- SAVE LOGIC (FIXED) ---
-  const handleSaveProduct = async (e) => {
+const handleSaveProduct = async (e) => {
     e.preventDefault();
-    
-    // Prepare the payload correctly
     const payload = {
-      ...productForm,
-      price: parseFloat(productForm.price),
-      stock_quantity: parseInt(productForm.stock_quantity, 10)
+        ...productForm,
+        price: parseFloat(productForm.price),
+        stock_quantity: parseInt(productForm.stock_quantity, 10)
     };
 
-   try {
-    if (editingProduct) {
-      // Add a leading slash or ensure it matches your API instance
-      await api.put(`/products/${editingProduct.id}`, payload);
-    } else {
-      // Try adding the slash explicitly if your server is being picky
-      await api.post('/products', payload); 
-    }
-      
-      setShowProductModal(false);
-      // RE-FETCH DATA: This ensures both the Admin and Cashier side see the update
-      await fetchAllData(); 
-      
+    try {
+        if (editingProduct) {
+            // Ensure no leading slash if your baseURL ends in /api
+            await api.put(`/products/${editingProduct.id}`, payload);
+        } else {
+            await api.post('/products', payload);
+        }
+        setShowProductModal(false);
+        await fetchAllData(); 
     } catch (err) {
-      console.error("Save Error:", err);
-      alert("Error saving product. Please check your connection.");
+        console.error("Save Error:", err.response?.data || err.message);
+        alert("Error: " + (err.response?.data?.error || "Check console"));
     }
-  };
-
+};
   const handleDeleteProduct = async (id) => {
     if (window.confirm("Delete this product? This cannot be undone.")) {
       try {
