@@ -63,27 +63,25 @@ const fetchAllData = async () => {
 
   // --- SAVE LOGIC (FIXED) ---
 const handleSaveProduct = async (e) => {
-    e.preventDefault();
-    const payload = {
-        ...productForm,
-        price: parseFloat(productForm.price),
-        stock_quantity: parseInt(productForm.stock_quantity, 10)
-    };
+  e.preventDefault();
+  const payload = { ...productForm, price: parseFloat(productForm.price), stock_quantity: parseInt(productForm.stock_quantity) };
 
-    try {
-        if (editingProduct) {
-            // Ensure no leading slash if your baseURL ends in /api
-            await api.put(`/products/${editingProduct.id}`, payload);
-        } else {
-            await api.post('/products', payload);
-        }
-        setShowProductModal(false);
-        await fetchAllData(); 
-    } catch (err) {
-        console.error("Save Error:", err.response?.data || err.message);
-        alert("Error: " + (err.response?.data?.error || "Check console"));
+  try {
+    if (editingProduct) {
+      const res = await api.put(`/products/${editingProduct.id}`, payload);
+      // Update local state immediately
+      setProducts(prev => prev.map(p => p.id === editingProduct.id ? res.data : p));
+    } else {
+      const res = await api.post('/products', payload);
+      // Add new item to the top of the list immediately
+      setProducts(prev => [res.data, ...prev]);
     }
+    setShowProductModal(false);
+  } catch (err) {
+    console.error("Save error:", err);
+  }
 };
+
   const handleDelete = async (id) => {
   if (window.confirm("Delete this product? This cannot be undone.")) {
     try {
