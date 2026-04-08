@@ -4,12 +4,11 @@ import './dashboard.css';
 import { 
   Plus, LogOut, Loader2, Trash2, Edit3, FileText, Package, 
   AlertTriangle, X, LayoutDashboard, ShoppingBag, 
-  BarChart3, Settings, Bell 
+  BarChart3, Settings 
 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
-  const [recentOrders, setRecentOrders] = useState([]);
   const [stats, setStats] = useState({ totalRevenue: 0, totalOrders: 0, daily: 0, weekly: 0, monthly: 0 });
   const [loading, setLoading] = useState(true);
   const [showProductModal, setShowProductModal] = useState(false);
@@ -19,16 +18,15 @@ export default function AdminDashboard() {
     name: '', price: '', category: 'Coffee', stock_quantity: '' 
   });
 
+  // --- DATA FETCHING ---
   const fetchAllData = async () => {
     try {
-      const [prodRes, statsRes, ordersRes] = await Promise.all([
+      const [prodRes, statsRes] = await Promise.all([
         api.get('/products'),
-        api.get('/stats/detailed-summary'),
-        api.get('/orders/history')
+        api.get('/stats/detailed-summary')
       ]);
       setProducts(prodRes.data || []);
       setStats(statsRes.data || { totalRevenue: 0, totalOrders: 0, daily: 0, weekly: 0, monthly: 0 });
-      setRecentOrders(ordersRes.data || []);
     } catch (err) { 
       console.error("Fetch Error:", err); 
     } finally { 
@@ -40,6 +38,7 @@ export default function AdminDashboard() {
     fetchAllData();
   }, []);
 
+  // --- MODAL HANDLERS ---
   const handleOpenModal = (product = null) => {
     if (product) {
       setEditingProduct(product);
@@ -56,8 +55,11 @@ export default function AdminDashboard() {
     setShowProductModal(true);
   };
 
+  // --- SAVE LOGIC (FIXED) ---
   const handleSaveProduct = async (e) => {
     e.preventDefault();
+    
+    // Prepare the payload correctly
     const payload = {
       ...productForm,
       price: parseFloat(productForm.price),
@@ -66,15 +68,20 @@ export default function AdminDashboard() {
 
     try {
       if (editingProduct) {
+        // Update existing product
         await api.put(`/products/${editingProduct.id}`, payload);
       } else {
+        // Create new product
         await api.post('/products', payload);
       }
+      
       setShowProductModal(false);
-      // Immediate refresh of data to show new/updated product
-      await fetchAllData();
+      // RE-FETCH DATA: This ensures both the Admin and Cashier side see the update
+      await fetchAllData(); 
+      
     } catch (err) {
-      alert("Error saving product.");
+      console.error("Save Error:", err);
+      alert("Error saving product. Please check your connection.");
     }
   };
 
@@ -91,7 +98,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="loader-container">
+      <div className="loader-container" style={{display:'flex', justifyContent:'center', alignItems:'center', height:'100vh'}}>
           <Loader2 className="animate-spin" size={40} color="#6f4e37" />
       </div>
     );
@@ -161,7 +168,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {products.map(p => (
+                {products.length > 0 ? products.map(p => (
                   <tr key={p.id}>
                     <td className="bold-text dark-text">{p.name}</td>
                     <td><span className={`badge ${p.category?.toLowerCase() || 'default'}`}>{p.category}</span></td>
@@ -174,7 +181,9 @@ export default function AdminDashboard() {
                       <button className="action-btn delete" onClick={() => handleDeleteProduct(p.id)}><Trash2 size={16}/></button>
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr><td colSpan="5" style={{textAlign:'center', padding:'20px'}}>No products found. Add your first item!</td></tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -197,7 +206,7 @@ export default function AdminDashboard() {
         </div>
       </main>
 
-      {/* --- POPUP MODAL (matches your screenshot) --- */}
+      {/* --- POPUP MODAL --- */}
       {showProductModal && (
         <div className="modal-overlay">
           <div className="modal-container">
